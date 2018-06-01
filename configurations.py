@@ -1,0 +1,12 @@
+POSSIBLE_FILE_TYPES = (("TIFF files", "*.tif *.tiff"), ("all files", "*.*"))
+BUTTON_DEFAULT_WIDTH = 15
+
+# Подгоночные параметры:
+LINES_DISTANCE = 70
+BASE_POINTS_LINES_DISTANCE_VARIATION = 69
+MAX_LINE_INTERRUPTION_DISTANCE = 25
+
+
+# Настройки визуальной части программы
+INITIAL_CANVAS_WIDTH = 600
+INITIAL_CANVAS_HEIGHT = 600
