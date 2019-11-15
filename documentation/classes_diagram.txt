@@ -1,0 +1,10 @@
+@startuml
+Interferogram - Lines
+Lines - Phases
+Phases - Density
+
+(Interferogram, Lines) .. Tracer
+(Lines, Phases) .. Phaser
+(Phases, Density) .. Densifier
+
+@enduml
