@@ -1,10 +1,43 @@
 @startuml
+
 Interferogram - Lines
 Lines - Phases
 Phases - Density
 
+Interferogram .. PixelChanger
 (Interferogram, Lines) .. Tracer
 (Lines, Phases) .. Phaser
 (Phases, Density) .. Densifier
+
+class Interferogram {
+{field} reads data from the picture
+{field} contains data on the 1 layer 
+{field} navigation 
+{field} allows changing scale
+{field} allows modifying some pixels (noise, random emissions)
+}
+
+class Lines { 
+{field} contains information about lines on the 2 layer (coordinates of basic points, direction of lines)
+{field} allows modifying lines, number and positions of basic points
+}
+
+class Phases { 
+{field} contains phase map and allows to show it on the 3 layer
+}
+class Density { 
+{field} contains density map and allows to show it on the 4 layer
+}
+
+class Tracer {
+{field} creates lines
+}
+class Phaser {
+{field} creates phase map
+}
+class Densifier { 
+{field} creates density map
+}
+
 
 @enduml
