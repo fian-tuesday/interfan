@@ -1,7 +1,8 @@
 from observer import Observable
 from configurations import *
 import math
-#import numpy
+from PIL import Image
+import numpy as np
 
 
 # === Модель ===
@@ -34,9 +35,28 @@ class AnalyzerModel:
 class InterferogramModel:
     """ Содержит данные интерферограммы.
         Умеет:
-        -
+        - хранить изображение интерферограммы
+        - хранить изображение в виде numpy матрицы
+        - получать numpy матрицу целиком
+        - получать rgba пикселя
+        - получать любой канал пикселя (1 -r, 2 - g и тд)
     """
-    pass
+    __image = 0
+    __NpImage = 0
+
+    def set_image(self, s):
+        self.__image = Image.open(s)
+        self.__NpImage = np.asarray(self.__image)
+
+    def get_image_npmatrix(self):
+        return self.__NpImage
+
+    def get_canal_pixel(self, x, y, c):
+        return self.__NpImage[x, y, c]
+
+    def get_rgb_pixel(self, x, y):
+        return self.__NpImage[x, y]
+
 
 class BasePointsModel(Observable):
     """ Содержит данные базовых точек.
