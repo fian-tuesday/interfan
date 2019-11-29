@@ -1,7 +1,7 @@
 from observer import Observable
 from configurations import *
 import math
-from PIL import Image
+from PIL import Image, ImageTk
 import numpy as np
 
 
@@ -52,6 +52,9 @@ class InterferogramModel:
 
     def open_image(self):
         return self.__image
+
+    def prepared_image(self):
+        return ImageTk.PhotoImage(self.__image)
 
     def get_image_npmatrix(self):
         return self.__NpImage
