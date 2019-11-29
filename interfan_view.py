@@ -7,21 +7,37 @@ import interfan_control as control
 import interfan_model as model
 from configurations import *
 from observer import Observer
-
+from PIL import Image, ImageTk
 
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.menu = self.init_menu()
-        self.toolbar = tk.Frame(self)
-        self.buttons = self.init_toolbar_buttons()
-        self.analyzer = self.init_analyzer()
-        self.status = self.init_status()
-        self.toolbar.grid(row=0, sticky="nw")
-        self.analyzer.grid(row=1, sticky="nsew")
-        self.status.grid(row=2, sticky="sew")
+        path = 'interferogram.tif'
+        model.InterferogramModel.set_image(self, 'interferogram.tif')
+        img = model.InterferogramModel.open_image(self)
+        interferogram = tk.Label(self, image=img)
+        interferogram.pack(side="left")
 
-        self.bind_controllers()
+        #model.InterferogramModel.set_image(self, path)
+        #img = model.InterferogramModel.open_image('interferogram.tif')
+
+
+        #img = model.InterferogramModel.prepared_image(self)
+        #img1 = ImageTk.PhotoImage(model.InterferogramModel.open_image(self))
+
+        #interferogram.pack(side="left")
+        #interferogram1 = tk.Label(self, image=img)
+        #interferogram1.pack(side="right")
+       # self.toolbar = tk.Frame(self)
+       # self.buttons = self.init_toolbar_buttons()
+       # self.analyzer = self.init_analyzer()
+       # self.status = self.init_status()
+       # self.toolbar.grid(row=0, sticky="nw")
+       # self.analyzer.grid(row=1, sticky="nsew")
+       # self.status.grid(row=2, sticky="sew")
+
+       # self.bind_controllers()
 
     def init_menu(self):
         menu_bar = tk.Menu(self)  # menu begins

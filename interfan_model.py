@@ -48,10 +48,11 @@ class InterferogramModel:
 
     def set_image(self, s):
         self.__image = Image.open(s)
+        self.__prepimage = ImageTk.PhotoImage(Image.open(s))
         self.__NpImage = np.asarray(self.__image)
 
     def open_image(self):
-        return self.__image
+        return self.__prepimage
 
     def prepared_image(self):
         return ImageTk.PhotoImage(self.__image)
