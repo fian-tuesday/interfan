@@ -33,13 +33,15 @@ class AnalyzerModel:
 
 
 class InterferogramModel:
-    """ Содержит данные интерферограммы.
-        Умеет:
-        - хранить изображение интерферограммы
-        - хранить изображение в виде numpy матрицы
-        - получать numpy матрицу целиком
-        - получать rgba пикселя
-        - получать любой канал пикселя (1 -r, 2 - g и тд)
+    """ Contains the data of the interferogram.
+        Can:
+        - store the image of the interferogram
+        - store image as numpy matrix
+        - get the whole numpy matrix
+        - get rgb pixel
+        - get any channel of the pixel (0-r, 1 - g and so on)
+        - get green section
+        - get width and height of image
     """
     __image = 0
     __NpImage = 0
@@ -48,14 +50,26 @@ class InterferogramModel:
         self.__image = Image.open(s)
         self.__NpImage = np.asarray(self.__image)
 
+    def open_image(self):
+        return self.__image
+
     def get_image_npmatrix(self):
         return self.__NpImage
 
-    def get_canal_pixel(self, x, y, c):
-        return self.__NpImage[x, y, c]
+    def get_canal_pixel(self, y, x, c):
+        return self.__NpImage[y, x, c]
 
-    def get_rgb_pixel(self, x, y):
-        return self.__NpImage[x, y]
+    def get_rgb_pixel(self, y, x):
+        return self.__NpImage[y, x]
+
+    def get_green_section(self, x):
+        return self.__NpImage[:, x, 1]
+
+    def get_width(self):
+        return self.__NpImage.shape[1]
+
+    def get_height(self):
+        return self.__NpImage.shape[0]
 
 
 class BasePointsModel(Observable):
