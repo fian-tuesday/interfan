@@ -1,33 +1,121 @@
 @startuml
 
-Interferogram - Lines
-Lines - Phases
-Phases - Density
+class MainWindow{
+{method} __init__(self)
+{method} init_menu(self)
+{method} init_analyzer(self)
+{method} init_status(self)
+{method} init_toolbar_buttons(self)
+{method} bind_controllers(self)
+{method} load_interferogram_dialog(self)
+{method} save_phases_dialog(self)
+}
 
-Interferogram .. PixelChanger
-(Interferogram, Lines) .. Tracer
-(Lines, Phases) .. Phaser
-(Phases, Density) .. Densifier
+class AnalyzerView{
+{method} __init__(self, master)
+{method} _create_canvas(self)
+}
+note "Holds canvas on which are depicted: \n interferogram \n basepoints \n lines \phase picture \n density picture \n allows to change scale of interferogram and move across it" as Nanview
+AnalyzerView .. Nanview
 
-class Interferogram 
-note "reads data from the picture\n contains data on the 1 layer\n navigation\n allows changing scale\n allows modifying some pixels (noise, random emissions)" as Ninterferogram
-Interferogram .. Ninterferogram
+class InterferogramView{
+{method} __init__(self, canvas)
+{method} update(self, message)
+}
+note "Holds on canvas the picture of interferogram" as Nintview
+InterferogramView .. Nintview
 
-class Lines 
-note "contains information about lines on the 2 layer (coordinates of basic points, direction of lines)\n allows modifying lines, number and positions of basic points" as Nlines
-Lines .. Nlines
+class BasePointsView{
+{method} __init__(self, canvas)
+{method} update(self, message)
+}
+note "Holds on canvas the picture of base points" as Nbaseview
+BasePointsView .. Nbaseview
 
-class Phases 
-note "contains phase map and allows to show it on the 3 layer" as Nphases
-Phases .. Nphases
+class LinesView{
+{method} __init__(self, canvas)
+{method} update(self, message)
+}
+note "Holds on canvas the picture of lines" as Nlinesview
+LinesView .. Nlinesview
 
-class Density 
-note "contains density map and allows to show it on the 4 layer" as Ndensity
-Density .. Ndensity
+class PhasesView{
+{method} __init__(self, canvas)
+{method} update(self, message)
+}
+note "Holds on canvas the picture of phases" as Nphaseview
+PhasesView .. Nphaseview
+
+class StatusBar.Frame{
+{method} __init__(self, master)
+{method} set(self, format_string, *args)
+{method} clear(self)
+}
+
+class AnalyzerControl{
+{method} __init__(self, model: AnalyzerModel)
+{method} load_interferogram(self, filename)
+{method} save_phases(self, filename)
+}
+
+class InterferogramControl{
+{method} __init__(self, model: InterferogramModel)
+}
+
+class BasePointsControl{
+{method} __init__(self, model: BasePointsModel)
+}
+
+class LinesControl{
+{method} __init__(self, model: LinesModel)
+}
+
+
+
+class AnalyzerModel{
+{method} __init__(self)
+{method} locate_base_points(self)
+}
+
+note "Can: \n find base points \n make tracing lines with base points" as Nanalyzer
+
+AnalyzerModel .. Nanalyzer
+
+class InterferogramModel{
+{method} set_image(self, s)
+{method} open_image(self)
+{method} prepared_image(self)
+{method} get_image_npmatrix(self)
+{method} get_canal_pixel(self, y, x, c)
+{method} get_rgb_pixel(self, y, x)
+{method} get_green_section(self, x)
+{method} get_width(self)
+{method} get_height(self)
+}
+
+note "Contains the data of the interferogram. \n Can: \n store the image of the interferogram \n store image as numpy matrix \n get the whole numpy matrix \n get rgb pixel \n get any channel of the pixel (0-r, 1 - g and so on) \n get green section \n get width and height of image" as Ninterferogram 
+
+InterferogramModel .. Ninterferogram
+
+class BasePointsModel
+note "Contains data of base points \n Can: \n save base points in file \n read base points from file \n add base points \n delete base points" as Nbase
+BasePointsModel .. Nbase 
+
+class LinesModel
+note "contains information about lines as sequence of coordinates P(x,y)\n Can: \n save points into file \n read points from file \n move a point along its line \n add a point in the middle of a line \n" as Nlines
+LinesModel .. Nlines
+
+class PhasesModel
+note "contains phase map \n Can: \n save phase map to file \n read phase map from a fiel" as Nphases
+PhasesModel .. Nphases
+
+class DensityModel
+note "contains density map \n Can: \n save density map to file \n read density map from a file" as Ndensity
+DensityModel .. Ndensity
 
 class Tracer 
 note "creates lines" as Ntracer
-Tracer.. Ntracer
+Tracer .. Ntracer
 
 class Phaser 
 note "creates phase map" as Nphaser
@@ -36,5 +124,40 @@ Phaser .. Nphaser
 class Densifier 
 note "creates density map" as Ndensifier
 Densifier .. Ndensifier
+
+MainWindow o-- AnalyzerView
+MainWindow o-- StatusBar
+
+AnalyzerView o-- InterferogramView
+AnalyzerView o-- BasePointsView
+AnalyzerView o-- LinesView
+AnalyzerView o-- InterferogramView
+AnalyzerView o-- PhasesView
+
+InterferogramView --> InterferogramModel: observes
+BasePointsView --> BasePointsModel : observes
+LinesView --> LinesModel : observes
+PhasesView --> PhasesModel : observes
+
+AnalyzerControl - AnalyzerModel
+InterferogramControl - InterferogramModel
+BasePointsControl - BasePointsModel
+LinesControl - LinesModel
+
+AnalyzerModel o-- InterferogramModel
+AnalyzerModel o-- LinesModel
+AnalyzerModel o-- BasePointsModel
+AnalyzerModel o-- PhasesModel
+AnalyzerModel o-- DensityModel
+
+InterferogramModel - LinesModel
+LinesModel - BasePointsModel
+LinesModel - PhasesModel
+PhasesModel - DensityModel
+
+InterferogramModel .. PixelChanger
+(InterferogramModel, LinesModel) .. Tracer
+(LinesModel, PhasesModel) .. Phaser
+(PhasesModel, DensityModel) .. Densifier
 
 @enduml
