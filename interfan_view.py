@@ -23,9 +23,9 @@ class MainWindow(tk.Tk):
         interferogram = tk.Label(self, image=img)
         scrollbar.config(command=interferogram)
         interferogram.pack(side="left")
-        self.toolbar = tk.Frame(self)
+        self.toolbar = tk.Frame(self, padx=100)
         self.entry = ttk.Entry(self.toolbar, state='readonly')
-        self.toolbar.pack(side="bottom")
+        self.toolbar.pack(side="right")
         self.buttons = self.init_toolbar_buttons()
        # self.analyzer = self.init_analyzer()
         self.status = self.init_status()
@@ -54,7 +54,7 @@ class MainWindow(tk.Tk):
                                             (3, "calc_phases", "Phases"),
                                             (4, "save_phases", "Save phases")]:
             buttons[button_name] = tk.Button(self.toolbar, width=BUTTON_DEFAULT_WIDTH, text=button_text)
-            buttons[button_name].grid(row=0, column=i)
+            buttons[button_name].grid(row=i, column=0)
         return buttons
 
     def bind_controllers(self):
