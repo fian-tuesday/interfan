@@ -24,17 +24,18 @@ class MainWindow(tk.Tk):
         scrollbar.config(command=interferogram)
         interferogram.pack(side="left")
         self.toolbar = tk.Frame(self, padx=100)
-        self.entry = ttk.Entry(self.toolbar, state='readonly')
         self.toolbar.pack(side="right")
         self.buttons = self.init_toolbar_buttons()
        # self.analyzer = self.init_analyzer()
         self.status = self.init_status()
+        self.status.set("statusbar can be called")
        # self.toolbar.grid(row=0, sticky="nw")
        # self.analyzer.grid(row=1, sticky="nsew")
        # self.status.grid(row=2, sticky="sew")
        # self.status.pack(side="bottom")
        # self.bind_controllers()
-        self.scrollbar = ttk.Scrollbar(self, orient='horizontal', command=self.entry.xview)
+       # self.entry = ttk.Entry(self.toolbar, state='readonly') it may be helpful to create horizontal scrollbar
+       #self.scrollbar = ttk.Scrollbar(self, orient='horizontal', command=self.entry.xview)
         #self.entry.config(xscrollcommand=self.entry.set)
 
 
@@ -111,12 +112,6 @@ class MenuBar(tk.Menu):
 
     def quit(self):
         sys.exit(0)
-
-#class App(tk.Tk):
-#    def __init__(self):
-#        tk.Tk.__init__(self)
-#        menubar = MenuBar(self)
-#        self.config(menu=menubar)
 
 class AnalyzerView(tk.Frame):
     """ Поддерживает холст, на котором будут отображаться:
@@ -197,8 +192,8 @@ class PhasesView(Observer):
 class StatusBar(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
-        self._label = tk.Label(master, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-       # self._label.grid(sticky="nesw")
+        self._label = tk.Label(master, text="", bd=2, relief=tk.SUNKEN, anchor=tk.W, font=('arial', 16, 'normal'))
+        self._label.pack(side="bottom", fill=tk.X)
 
     def set(self, format_string, *args):
         self._label.config(text=format_string.format(*args))
@@ -208,4 +203,3 @@ class StatusBar(tk.Frame):
         self._label.config(text="")
         self._label.update_idletasks()
 
-# class ScrollBar(tk.Tk):
