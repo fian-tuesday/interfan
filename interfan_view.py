@@ -53,7 +53,8 @@ class MainWindow(tk.Tk):
                                             (1, "find_base_points", "Points"),
                                             (2, "trace_lines", "Trace"),
                                             (3, "calc_phases", "Phases"),
-                                            (4, "save_phases", "Save phases")]:
+                                            (4, "save_phases", "Save phases"),
+                                            (5, "calc_density", "Density")]:
             buttons[button_name] = tk.Button(self.toolbar, width=BUTTON_DEFAULT_WIDTH, text=button_text)
             buttons[button_name].grid(row=i, column=0)
         return buttons
