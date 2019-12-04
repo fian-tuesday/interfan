@@ -2,22 +2,29 @@ import tkinter as tk
 import tkinter.filedialog as filedialog
 import PIL.Image
 import PIL.ImageTk
+import sys
 
 import interfan_control as control
 import interfan_model as model
 from configurations import *
 from observer import Observer
+from tkinter import ttk
 
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.menu = self.init_menu()
+        menubar = MenuBar(self)
+        self.config(menu=menubar)
         path = 'interferogram.tif'
         model.InterferogramModel.set_image(self, 'interferogram.tif')
         img = model.InterferogramModel.open_image(self)
+        scrollbar = tk.Scrollbar(self)
+        scrollbar.pack(side="right")
         interferogram = tk.Label(self, image=img)
+        scrollbar.config(command=interferogram)
         interferogram.pack(side="left")
         self.toolbar = tk.Frame(self)
+        self.entry = ttk.Entry(self.toolbar, state='readonly')
         self.toolbar.pack(side="bottom")
         self.buttons = self.init_toolbar_buttons()
        # self.analyzer = self.init_analyzer()
@@ -27,37 +34,9 @@ class MainWindow(tk.Tk):
        # self.status.grid(row=2, sticky="sew")
        # self.status.pack(side="bottom")
        # self.bind_controllers()
-        scrollbar = tk.Scrollbar(self)
-        scrollbar.pack(side="right")
+        self.scrollbar = ttk.Scrollbar(self, orient='horizontal', command=self.entry.xview)
+        #self.entry.config(xscrollcommand=self.entry.set)
 
-    def init_menu(self):
-        menu_bar = tk.Menu(self)  # menu begins
-
-        file_menu = tk.Menu(menu_bar, tearoff=0)
-        file_menu.add_command(label='New analysis', accelerator='Ctrl+N', compound='left', underline=0)
-        file_menu.add_command(label='Open analysis', accelerator='Ctrl+O', compound='left', underline=0)
-        file_menu.add_command(label='Save analysis', accelerator='Ctrl+S', compound='left', underline=0)
-        file_menu.add_separator()
-        file_menu.add_command(label='Exit', accelerator='Alt+F4')
-        menu_bar.add_cascade(label='File', menu=file_menu)
-
-        view_menu = tk.Menu(menu_bar, tearoff=0)
-        view_menu.add_command(label='Show base points', accelerator='.', compound='left', underline=0)
-        view_menu.add_command(label='Show lines', accelerator='/', compound='left', underline=0)
-        menu_bar.add_cascade(label='View', menu=view_menu)
-
-        analyzer_menu = tk.Menu(menu_bar, tearoff=0)
-        view_menu.add_command(label='Detect base points', accelerator='Ctrl+.', compound='left', underline=0)
-        view_menu.add_command(label='Trace interference lines', accelerator='Ctrl+/', compound='left', underline=0)
-        menu_bar.add_cascade(label='Analysis', menu=analyzer_menu)
-
-        about_menu = tk.Menu(menu_bar, tearoff=0)
-        about_menu.add_command(label='Help', accelerator='F1')
-        about_menu.add_command(label='About')
-        menu_bar.add_cascade(label='About', menu=analyzer_menu)
-
-        self.config(menu=menu_bar)
-        return menu_bar
 
     def init_analyzer(self):
         analyzer = AnalyzerView(self)
@@ -105,6 +84,39 @@ class MainWindow(tk.Tk):
             self.analyzer.control.save_phases(filename)
             self.status.set("Saved image file {0} successfully.", filename)
 
+class MenuBar(tk.Menu):
+    def __init__(self, parent):
+        tk.Menu.__init__(self, parent)
+        file_menu = tk.Menu(self, tearoff=False)
+        self.add_cascade(label="File",underline=0, menu=file_menu)
+        file_menu.add_command(label="Exit", underline=1, command=self.quit)
+        file_menu.add_command(label='New analysis', accelerator='Ctrl+N', compound='left', underline=0)
+        file_menu.add_command(label='Open analysis', accelerator='Ctrl+O', compound='left', underline=0)
+        file_menu.add_command(label='Save analysis', accelerator='Ctrl+S', compound='left', underline=0)
+        file_menu.add_separator()
+        file_menu.add_command(label='Exit', accelerator='Alt+F4')
+        self.add_cascade(label='File', menu=file_menu)
+        view_menu = tk.Menu(self, tearoff=0)
+        view_menu.add_command(label='Show base points', accelerator='.', compound='left', underline=0)
+        view_menu.add_command(label='Show lines', accelerator='/', compound='left', underline=0)
+        self.add_cascade(label='View', menu=view_menu)
+        analyzer_menu = tk.Menu(self, tearoff=0)
+        view_menu.add_command(label='Detect base points', accelerator='Ctrl+.', compound='left', underline=0)
+        view_menu.add_command(label='Trace interference lines', accelerator='Ctrl+/', compound='left', underline=0)
+        self.add_cascade(label='Analysis', menu=analyzer_menu)
+        about_menu = tk.Menu(self, tearoff=0)
+        about_menu.add_command(label='Help', accelerator='F1')
+        about_menu.add_command(label='About')
+        self.add_cascade(label='About', menu=analyzer_menu)
+
+    def quit(self):
+        sys.exit(0)
+
+#class App(tk.Tk):
+#    def __init__(self):
+#        tk.Tk.__init__(self)
+#        menubar = MenuBar(self)
+#        self.config(menu=menubar)
 
 class AnalyzerView(tk.Frame):
     """ Поддерживает холст, на котором будут отображаться:
