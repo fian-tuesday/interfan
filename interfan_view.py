@@ -21,12 +21,14 @@ class MainWindow(tk.Tk):
         self.toolbar.pack(side="bottom")
         self.buttons = self.init_toolbar_buttons()
        # self.analyzer = self.init_analyzer()
-       # self.status = self.init_status()
+        self.status = self.init_status()
        # self.toolbar.grid(row=0, sticky="nw")
        # self.analyzer.grid(row=1, sticky="nsew")
        # self.status.grid(row=2, sticky="sew")
-
+       # self.status.pack(side="bottom")
        # self.bind_controllers()
+        scrollbar = tk.Scrollbar(self)
+        scrollbar.pack(side="right")
 
     def init_menu(self):
         menu_bar = tk.Menu(self)  # menu begins
@@ -184,7 +186,7 @@ class StatusBar(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
         self._label = tk.Label(master, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self._label.grid(sticky="nesw")
+       # self._label.grid(sticky="nesw")
 
     def set(self, format_string, *args):
         self._label.config(text=format_string.format(*args))
@@ -193,3 +195,5 @@ class StatusBar(tk.Frame):
     def clear(self):
         self._label.config(text="")
         self._label.update_idletasks()
+
+# class ScrollBar(tk.Tk):
