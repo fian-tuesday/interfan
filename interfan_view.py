@@ -7,7 +7,6 @@ import interfan_control as control
 import interfan_model as model
 from configurations import *
 from observer import Observer
-from PIL import Image, ImageTk
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -18,19 +17,9 @@ class MainWindow(tk.Tk):
         img = model.InterferogramModel.open_image(self)
         interferogram = tk.Label(self, image=img)
         interferogram.pack(side="left")
-
-        #model.InterferogramModel.set_image(self, path)
-        #img = model.InterferogramModel.open_image('interferogram.tif')
-
-
-        #img = model.InterferogramModel.prepared_image(self)
-        #img1 = ImageTk.PhotoImage(model.InterferogramModel.open_image(self))
-
-        #interferogram.pack(side="left")
-        #interferogram1 = tk.Label(self, image=img)
-        #interferogram1.pack(side="right")
-       # self.toolbar = tk.Frame(self)
-       # self.buttons = self.init_toolbar_buttons()
+        self.toolbar = tk.Frame(self)
+        self.toolbar.pack(side="bottom")
+        self.buttons = self.init_toolbar_buttons()
        # self.analyzer = self.init_analyzer()
        # self.status = self.init_status()
        # self.toolbar.grid(row=0, sticky="nw")
