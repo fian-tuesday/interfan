@@ -1,6 +1,6 @@
 @startuml
 
-class MainWindow{
+class MainWindow #green{
 {method} __init__(self)
 {method} init_menu(self)
 {method} init_analyzer(self)
@@ -11,77 +11,78 @@ class MainWindow{
 {method} save_phases_dialog(self)
 }
 
-class AnalyzerView{
+class AnalyzerView #green{
 {method} __init__(self, master)
 {method} _create_canvas(self)
 }
 note "Holds canvas on which are depicted: \n interferogram \n basepoints \n lines \phase picture \n density picture \n allows to change scale of interferogram and move across it" as Nanview
 AnalyzerView .. Nanview
 
-class InterferogramView{
+class InterferogramView #green{
 {method} __init__(self, canvas)
 {method} update(self, message)
 }
 note "Holds on canvas the picture of interferogram" as Nintview
 InterferogramView .. Nintview
 
-class BasePointsView{
+class BasePointsView #green{
 {method} __init__(self, canvas)
 {method} update(self, message)
 }
 note "Holds on canvas the picture of base points" as Nbaseview
 BasePointsView .. Nbaseview
 
-class LinesView{
+class LinesView #green{
 {method} __init__(self, canvas)
 {method} update(self, message)
 }
 note "Holds on canvas the picture of lines" as Nlinesview
 LinesView .. Nlinesview
 
-class PhasesView{
+class PhasesView #green{
 {method} __init__(self, canvas)
 {method} update(self, message)
 }
 note "Holds on canvas the picture of phases" as Nphaseview
 PhasesView .. Nphaseview
 
-class StatusBar.Frame{
+class StatusBar.Frame #green{
 {method} __init__(self, master)
 {method} set(self, format_string, *args)
 {method} clear(self)
 }
 
-class AnalyzerControl{
+class AnalyzerControl #red{
 {method} __init__(self, model: AnalyzerModel)
 {method} load_interferogram(self, filename)
 {method} save_phases(self, filename)
 }
 
-class InterferogramControl{
+class InterferogramControl #red{
 {method} __init__(self, model: InterferogramModel)
 }
 
-class BasePointsControl{
+class BasePointsControl #red{
 {method} __init__(self, model: BasePointsModel)
 }
 
-class LinesControl{
+class LinesControl #red{
+{method} __init__(self, model: LinesModel)
+}
+
+class PhasesControl #red{
 {method} __init__(self, model: LinesModel)
 }
 
 
-
-class AnalyzerModel{
+class AnalyzerModel #blue{
 {method} __init__(self)
 {method} locate_base_points(self)
 }
-
 note "Can: \n find base points \n make tracing lines with base points" as Nanalyzer
-
 AnalyzerModel .. Nanalyzer
 
-class InterferogramModel{
+class InterferogramModel #blue{
 {method} set_image(self, s)
 {method} open_image(self)
 {method} prepared_image(self)
@@ -92,72 +93,75 @@ class InterferogramModel{
 {method} get_width(self)
 {method} get_height(self)
 }
-
 note "Contains the data of the interferogram. \n Can: \n store the image of the interferogram \n store image as numpy matrix \n get the whole numpy matrix \n get rgb pixel \n get any channel of the pixel (0-r, 1 - g and so on) \n get green section \n get width and height of image" as Ninterferogram 
-
 InterferogramModel .. Ninterferogram
 
-class BasePointsModel
+class BasePointsModel #blue
 note "Contains data of base points \n Can: \n save base points in file \n read base points from file \n add base points \n delete base points" as Nbase
 BasePointsModel .. Nbase 
 
-class LinesModel
+class LinesModel #blue
 note "contains information about lines as sequence of coordinates P(x,y)\n Can: \n save points into file \n read points from file \n move a point along its line \n add a point in the middle of a line \n" as Nlines
 LinesModel .. Nlines
 
-class PhasesModel
+class PhasesModel #blue
 note "contains phase map \n Can: \n save phase map to file \n read phase map from a fiel" as Nphases
 PhasesModel .. Nphases
 
-class DensityModel
+class DensityModel #blue
 note "contains density map \n Can: \n save density map to file \n read density map from a file" as Ndensity
 DensityModel .. Ndensity
 
-class Tracer 
+class PixelChanger #yellow
+
+class Tracer #yellow
 note "creates lines" as Ntracer
 Tracer .. Ntracer
 
-class Phaser 
+class Phaser #yellow
 note "creates phase map" as Nphaser
 Phaser .. Nphaser
 
-class Densifier 
+class Densifier #yellow
 note "creates density map" as Ndensifier
 Densifier .. Ndensifier
 
-MainWindow o-- AnalyzerView
-MainWindow o-- StatusBar
+MainWindow o-down[#olive]- AnalyzerView
+MainWindow o-down[#olive]- StatusBar
 
-AnalyzerView o-- InterferogramView
-AnalyzerView o-- BasePointsView
-AnalyzerView o-- LinesView
-AnalyzerView o-- InterferogramView
-AnalyzerView o-- PhasesView
+AnalyzerView o-down[#green]- InterferogramView
+AnalyzerView o-down[#green]- BasePointsView
+AnalyzerView o-down[#green]- LinesView
+AnalyzerView o-down[#green]- InterferogramView
+AnalyzerView o-down[#green]- PhasesView
 
-InterferogramView --> InterferogramModel: observes
-BasePointsView --> BasePointsModel : observes
-LinesView --> LinesModel : observes
-PhasesView --> PhasesModel : observes
 
-AnalyzerControl - AnalyzerModel
-InterferogramControl - InterferogramModel
-BasePointsControl - BasePointsModel
-LinesControl - LinesModel
+InterferogramView <-down[#FF00FF]- InterferogramControl: button
+BasePointsView <-down[#FF00FF]- BasePointsControl : button
+LinesView <-down[#FF00FF]- LinesControl : button
+PhasesView <-down[#FF00FF]- PhasesControl : button
 
-AnalyzerModel o-- InterferogramModel
-AnalyzerModel o-- LinesModel
-AnalyzerModel o-- BasePointsModel
-AnalyzerModel o-- PhasesModel
-AnalyzerModel o-- DensityModel
+InterferogramControl -down[#red]-> InterferogramModel: observes
+BasePointsControl -down[#red]-> BasePointsModel : observes
+LinesControl -down[#red]-> LinesModel : observes
+PhasesControl -down[#red]-> PhasesModel : observes
+AnalyzerControl -down[#red]- AnalyzerModel
 
-InterferogramModel - LinesModel
-LinesModel - BasePointsModel
-LinesModel - PhasesModel
-PhasesModel - DensityModel
 
-InterferogramModel .. PixelChanger
-(InterferogramModel, LinesModel) .. Tracer
-(LinesModel, PhasesModel) .. Phaser
-(PhasesModel, DensityModel) .. Densifier
+AnalyzerModel o-up[#00BFFF]- InterferogramModel
+AnalyzerModel o-up[#00BFFF]- LinesModel
+AnalyzerModel o-up[#00BFFF]- BasePointsModel
+AnalyzerModel o-up[#00BFFF]- PhasesModel
+AnalyzerModel o-up[#00BFFF]- DensityModel
+
+InterferogramModel -right[#0000BB]- LinesModel
+LinesModel -right[#0000BB]- BasePointsModel
+LinesModel -right[#0000BB]- PhasesModel
+PhasesModel -right[#0000BB]- DensityModel
+
+InterferogramModel .down[#FFFF00]. PixelChanger
+(InterferogramModel, LinesModel) .down[#FFFF00]. Tracer
+(LinesModel, PhasesModel) .down[#FFFF00]. Phaser
+(PhasesModel, DensityModel) .down[#FFFF00]. Densifier
 
 @enduml
