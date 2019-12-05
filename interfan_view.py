@@ -15,25 +15,19 @@ class MainWindow(tk.Tk):
         super().__init__()
         menubar = MenuBar(self)
         self.config(menu=menubar)
-        path = 'interferogram.tif'
-        model.InterferogramModel.set_image(self, 'interferogram.tif')
-        img = model.InterferogramModel.open_image(self)
-        scrollbar = tk.Scrollbar(self)
-        scrollbar.pack(side="right")
-        interferogram = tk.Label(self, image=img)
-        scrollbar.config(command=interferogram)
-        interferogram.pack(side="left")
         self.toolbar = tk.Frame(self, padx=100)
         self.toolbar.pack(side="right")
         self.buttons = self.init_toolbar_buttons()
-       # self.analyzer = self.init_analyzer()
+        self.analyzer = self.init_analyzer()
         self.status = self.init_status()
         self.status.set("statusbar can be called")
+        self.bind_controllers()
+        self.model = model.InterferogramModel
        # self.toolbar.grid(row=0, sticky="nw")
        # self.analyzer.grid(row=1, sticky="nsew")
        # self.status.grid(row=2, sticky="sew")
        # self.status.pack(side="bottom")
-       # self.bind_controllers()
+
        # self.entry = ttk.Entry(self.toolbar, state='readonly') it may be helpful to create horizontal scrollbar
        #self.scrollbar = ttk.Scrollbar(self, orient='horizontal', command=self.entry.xview)
         #self.entry.config(xscrollcommand=self.entry.set)
@@ -73,7 +67,13 @@ class MainWindow(tk.Tk):
         else:
             self.status.set("Loading image file {0}...", filename)
             self.analyzer.control.load_interferogram(filename)
+            # img = self.analyzer.interferogram.model.open_image()
+            # img = model.InterferogramModel.open_image(self)
+            # tk.Label(self.analyzer.canvas, image=img).pack(side="left")
+            # interferogram.pack(side="left")
             self.status.set("Loaded image file {0} successfully.", filename)
+            self.analyzer.interferogram.status = 1
+            self.analyzer.interferogram.update("message")
 
     def save_phases_dialog(self):
         self.status.set("Select image file to save...")
@@ -126,12 +126,11 @@ class AnalyzerView(tk.Frame):
         super().__init__(master)
         self.model = model.AnalyzerModel()
         self.control = control.AnalyzerControl(self.model)
-
         self.canvas = self._create_canvas()
         self.interferogram = InterferogramView(self.canvas)
-        self.base_points = BasePointsView(self.canvas)
-        self.lines = LinesView(self.canvas)
-        self.phases = PhasesView(self.canvas)
+        #self.base_points = BasePointsView(self.canvas)
+        #self.lines = LinesView(self.canvas)
+        #self.phases = PhasesView(self.canvas)
 
     def _create_canvas(self):
         canvas = tk.Canvas(self, width=INITIAL_CANVAS_WIDTH, height=INITIAL_CANVAS_HEIGHT)
@@ -144,12 +143,18 @@ class InterferogramView(Observer):
     def __init__(self, canvas):
         self.model = model.InterferogramModel()
         self.control = control.InterferogramControl(self.model)
-
         self.canvas = canvas
+        #self.interferogram = tk.Label(self.canvas, image=self.model.open_image())
+        self.status = 0
         self.canvas.create_line(0, 0, INITIAL_CANVAS_WIDTH - 1, INITIAL_CANVAS_HEIGHT - 1)
         self.canvas.create_line(0, INITIAL_CANVAS_HEIGHT - 1, INITIAL_CANVAS_WIDTH - 1, 0)
-
+        # img = model.InterferogramModel.open_image(self)
+        # interferogram = tk.Label(self, image=img)
+        # interferogram.pack(side="left")
     def update(self, message):
+        if self.status == 1 :
+            self.interferogram = tk.Label(self.canvas, image=self.model.open_image())
+            self.interferogram.pack(self.canvas)
         print(message)
 
 

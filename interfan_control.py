@@ -19,6 +19,7 @@ class AnalyzerControl:
 
     def load_interferogram(self, filename):
         print("Типа загружаем интерферограмму: ", filename)
+        self.model.interferogram.set_image(filename)
         pass
 
     def save_phases(self, filename):

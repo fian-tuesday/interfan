@@ -45,6 +45,7 @@ class InterferogramModel:
     """
     __image = 0
     __NpImage = 0
+    __prepimage = "interferogram.tif"
 
     def set_image(self, s):
         self.__image = Image.open(s)
