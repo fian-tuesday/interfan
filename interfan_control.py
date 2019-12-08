@@ -6,16 +6,17 @@
 - интерференционных линий
 """
 from interfan_model import *
+from interfan_view import *
 
 
-class AnalyzerControl:
+class MultilayerWorkspaceControl:
     """ Содержит обработчики сигналов от пользователя, относящиеся к анализатору.
         Возможности:
         - редактирование базовых точек (удаление левой кнопкой мыши, добавление правой и средней)
         - редактирование интерференционных линий
     """
-    def __init__(self, model: AnalyzerModel):
-        self.model = model
+    def __init__(self, view: "MultilayerWorkspace"):
+        self._view = view
 
     def load_interferogram(self, filename):
         print("Типа загружаем интерферограмму: ", filename)

@@ -5,33 +5,6 @@ from PIL import Image, ImageTk
 import numpy as np
 
 
-# === Модель ===
-class AnalyzerModel:
-    """ Главный аналитический объект. Вся рабочая математика содержится тут.
-        Инкапсулирует объекты:
-        - модель интерферограммы
-        - модель базовых точек
-        - модель линий
-        - модель фазовой картинки
-
-        Осуществляет взаимодействие объектов.
-        Умеет:
-        - находить базовые точки по данным интерферограммы
-        - трассировать интерференционные линии по базовым точкам
-    """
-    def __init__(self):
-        self.interferogram = InterferogramModel()
-        self.base_points = BasePointsModel()
-        self.lines = LinesModel()
-
-    def locate_base_points(self):
-        """ Находит базовые точки по данным интерферограммы
-            работает по вертикальным срезам, для точек в диапазоне
-            для параболы критерию хи-квадрат
-        """
-        pass
-
-
 class InterferogramModel:
     """ Contains the data of the interferogram.
         Can:

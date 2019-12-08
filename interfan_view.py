@@ -10,6 +10,7 @@ from configurations import *
 from observer import Observer
 from tkinter import ttk
 
+
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -34,7 +35,7 @@ class MainWindow(tk.Tk):
 
 
     def init_analyzer(self):
-        analyzer = AnalyzerView(self)
+        analyzer = MultilayerWorkspace(self)
         return analyzer
 
     def init_status(self):
@@ -86,6 +87,7 @@ class MainWindow(tk.Tk):
             self.analyzer.control.save_phases(filename)
             self.status.set("Saved image file {0} successfully.", filename)
 
+
 class MenuBar(tk.Menu):
     def __init__(self, parent):
         tk.Menu.__init__(self, parent)
@@ -114,7 +116,8 @@ class MenuBar(tk.Menu):
     def quit(self):
         sys.exit(0)
 
-class AnalyzerView(tk.Frame):
+
+class MultilayerWorkspace(tk.Frame):
     """ Поддерживает холст, на котором будут отображаться:
         - интерферограмма,
         - базовые точки для выделения интерференционных линий,
@@ -124,8 +127,7 @@ class AnalyzerView(tk.Frame):
     """
     def __init__(self, master):
         super().__init__(master)
-        self.model = model.AnalyzerModel()
-        self.control = control.AnalyzerControl(self.model)
+        self.control = control.MultilayerWorkspaceControl(self)
         self.canvas = self._create_canvas()
         self.interferogram = InterferogramView(self.canvas)
         #self.base_points = BasePointsView(self.canvas)
