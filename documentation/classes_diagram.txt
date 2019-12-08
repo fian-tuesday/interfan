@@ -11,12 +11,12 @@ class MainWindow #green{
 {method} save_phases_dialog(self)
 }
 
-class AnalyzerView #green{
+class MultilayerWorkspace #green{
 {method} __init__(self, master)
 {method} _create_canvas(self)
 }
 note "Holds canvas on which are depicted: \n interferogram \n basepoints \n lines \phase picture \n density picture \n allows to change scale of interferogram and move across it" as Nanview
-AnalyzerView .. Nanview
+MultilayerWorkspace .. Nanview
 
 class InterferogramView #green{
 {method} __init__(self, canvas)
@@ -52,10 +52,8 @@ class StatusBar.Frame #green{
 {method} clear(self)
 }
 
-class AnalyzerControl #red{
-{method} __init__(self, model: AnalyzerModel)
-{method} load_interferogram(self, filename)
-{method} save_phases(self, filename)
+class MultilayerWorkspaceControl #red{
+{method} __init__(self, view: MultilayerWorkspace)
 }
 
 class InterferogramControl #red{
@@ -75,13 +73,6 @@ class PhasesControl #red{
 }
 
 
-class AnalyzerModel #blue{
-{method} __init__(self)
-{method} locate_base_points(self)
-}
-note "Can: \n find base points \n make tracing lines with base points" as Nanalyzer
-AnalyzerModel .. Nanalyzer
-
 class InterferogramModel #blue{
 {method} set_image(self, s)
 {method} open_image(self)
@@ -93,7 +84,7 @@ class InterferogramModel #blue{
 {method} get_width(self)
 {method} get_height(self)
 }
-note "Contains the data of the interferogram. \n Can: \n store the image of the interferogram \n store image as numpy matrix \n get the whole numpy matrix \n get rgb pixel \n get any channel of the pixel (0-r, 1 - g and so on) \n get green section \n get width and height of image" as Ninterferogram 
+note "Contains the data of the interferogram. \n Can: \n store the image of the interferogram \n store image as numpy matrix \n get the whole numpy matrix \n get rgb pixel \n get any channel of the pixel (0-r, 1 - g and so on) \n get green section \n get width and height of image" as Ninterferogram
 InterferogramModel .. Ninterferogram
 
 class BasePointsModel #blue
