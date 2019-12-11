@@ -1,7 +1,7 @@
 import tkinter as tk
 import tkinter.filedialog as filedialog
-import PIL.Image
-import PIL.ImageTk
+import PIL.Image as Image
+import PIL.ImageTk as ImageTk
 import sys
 
 import interfan_control as control
@@ -9,7 +9,7 @@ import interfan_model as model
 from configurations import *
 from observer import Observer
 from tkinter import ttk
-
+from tkinter import PhotoImage
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -19,8 +19,17 @@ class MainWindow(tk.Tk):
         self.toolbar = tk.Frame(self, padx=100)
         self.toolbar.pack(side="right")
         self.buttons = self.init_toolbar_buttons()
-        self.analyzer = self.init_analyzer()
+        self.frame = tk.Frame(self,  background = "#ffffff", width=2000, height=2000)
+        self.frame.pack(expand = "true", fill = "both")
+        self.analyzer = MultilayerWorkspace(self.frame)
         self.status = self.init_status()
+        self.canvas = self.analyzer.canvas
+        self.canvas.place(relx=0.5, rely=0.5,anchor="center")
+        #self.interferogram = InterferogramView(self.canvas)
+        self.vbar = tk.Scrollbar(self.frame,orient="vertical")
+        self.vbar.pack(side="right",fill="y")
+        self.vbar.config(command=self.canvas.yview)
+        self.canvas.config(yscrollcommand=self.vbar.set)
         self.status.set("statusbar can be called")
         self.bind_controllers()
         self.model = model.InterferogramModel
@@ -29,14 +38,6 @@ class MainWindow(tk.Tk):
        # self.status.grid(row=2, sticky="sew")
        # self.status.pack(side="bottom")
 
-       # self.entry = ttk.Entry(self.toolbar, state='readonly') it may be helpful to create horizontal scrollbar
-       #self.scrollbar = ttk.Scrollbar(self, orient='horizontal', command=self.entry.xview)
-        #self.entry.config(xscrollcommand=self.entry.set)
-
-
-    def init_analyzer(self):
-        analyzer = MultilayerWorkspace(self)
-        return analyzer
 
     def init_status(self):
         status = StatusBar(self)
@@ -67,14 +68,14 @@ class MainWindow(tk.Tk):
             self.status.clear()
         else:
             self.status.set("Loading image file {0}...", filename)
-            self.analyzer.control.load_interferogram(filename)
-            # img = self.analyzer.interferogram.model.open_image()
-            # img = model.InterferogramModel.open_image(self)
-            # tk.Label(self.analyzer.canvas, image=img).pack(side="left")
-            # interferogram.pack(side="left")
+            # self.analyzer.control.load_interferogram(filename)
+            self.img = Image.open(filename)
+            width, height = self.img.size
+            self.canvas.config(scrollregion=(0, 0, width, height))
+            self.img2 = ImageTk.PhotoImage(self.img)
+            self.imgtag = self.canvas.create_image(int(self.canvas.cget("width"))/2-width/2-8, 0, anchor="nw", image=self.img2)
             self.status.set("Loaded image file {0} successfully.", filename)
-            self.analyzer.interferogram.status = 1
-            self.analyzer.interferogram.update("message")
+          #  self.analyzer.interferogram.update("message")
 
     def save_phases_dialog(self):
         self.status.set("Select image file to save...")
@@ -99,7 +100,6 @@ class MenuBar(tk.Menu):
         file_menu.add_command(label='Save analysis', accelerator='Ctrl+S', compound='left', underline=0)
         file_menu.add_separator()
         file_menu.add_command(label='Exit', accelerator='Alt+F4')
-        self.add_cascade(label='File', menu=file_menu)
         view_menu = tk.Menu(self, tearoff=0)
         view_menu.add_command(label='Show base points', accelerator='.', compound='left', underline=0)
         view_menu.add_command(label='Show lines', accelerator='/', compound='left', underline=0)
@@ -128,17 +128,11 @@ class MultilayerWorkspace(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
         self.control = control.MultilayerWorkspaceControl(self)
-        self.canvas = self._create_canvas()
-        self.interferogram = InterferogramView(self.canvas)
+        self.canvas = tk.Canvas(master, bg="#cad0e5", width=1000, height=1000, scrollregion=(0,0,2000,2000))
+        #self.interferogram = InterferogramView(self.canvas)
         #self.base_points = BasePointsView(self.canvas)
         #self.lines = LinesView(self.canvas)
         #self.phases = PhasesView(self.canvas)
-
-    def _create_canvas(self):
-        canvas = tk.Canvas(self, width=INITIAL_CANVAS_WIDTH, height=INITIAL_CANVAS_HEIGHT)
-        canvas.grid(row=0, column=0, sticky="nesw")
-        return canvas
-
 
 class InterferogramView(Observer):
     """ Поддерживает отображение на холсте интерферограммы """
@@ -146,7 +140,6 @@ class InterferogramView(Observer):
         self.model = model.InterferogramModel()
         self.control = control.InterferogramControl(self.model)
         self.canvas = canvas
-        #self.interferogram = tk.Label(self.canvas, image=self.model.open_image())
         self.status = 0
         self.canvas.create_line(0, 0, INITIAL_CANVAS_WIDTH - 1, INITIAL_CANVAS_HEIGHT - 1)
         self.canvas.create_line(0, INITIAL_CANVAS_HEIGHT - 1, INITIAL_CANVAS_WIDTH - 1, 0)
@@ -200,7 +193,7 @@ class PhasesView(Observer):
 class StatusBar(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
-        self._label = tk.Label(master, text="", bd=2, relief=tk.SUNKEN, anchor=tk.W, font=('arial', 16, 'normal'))
+        self._label = tk.Label(master, text="", bd=2, relief=tk.SUNKEN, anchor=tk.E, font=('arial', 16, 'normal'))
         self._label.pack(side="bottom", fill=tk.X)
 
     def set(self, format_string, *args):
@@ -210,4 +203,3 @@ class StatusBar(tk.Frame):
     def clear(self):
         self._label.config(text="")
         self._label.update_idletasks()
-
