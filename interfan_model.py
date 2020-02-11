@@ -1,9 +1,12 @@
 from observer import Observable
 from configurations import *
 import math
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw
 import numpy as np
-
+from abc import ABC, abstractmethod
+from ctypes import *
+import os
+from numpy.core._multiarray_umath import ndarray
 
 class InterferogramModel:
     """ Contains the data of the interferogram.
@@ -49,6 +52,283 @@ class InterferogramModel:
     def get_height(self):
         return self.__NpImage.shape[0]
 
+
+class Tracer:
+
+    """
+        This class contains information about traced lines.
+        Lines are stored as a one-dimensional array. It consists of a sequence of base points,
+        the remainder of the division of the element number by the width of the image is the abcissa of the point,
+        the value of the element is its ordinate.
+        The class can return the number of lines, an array of base points, and draw lines on the original image.
+    """
+
+    def __init__(self, matrix, full_path_to_shared_library):
+        matrix = matrix.transpose()
+        self._lib = CDLL(full_path_to_shared_library)
+        self._width = matrix.shape[0]
+        self._height = matrix.shape[1]
+        self._matrix = np.array(matrix)
+        self._matrix = self._matrix.astype(np.int32)
+        self._amount_lines = 0
+
+    def get_lines(self):
+        return self._lines
+
+    def get_amount_lines(self):
+        return self._amount_lines
+
+    def draw_lines(self, initional_picture, result_picture):
+        image = Image.open(initional_picture)
+        array = []
+        for i in range(self._amount_lines):
+            draw = ImageDraw.Draw(image)
+            for j in range(self._width):
+                array.append((j, self._lines[i, j]))
+            draw.line(array, (255, 255, 255), 1)
+            array.clear()
+            del draw
+        image.save(result_picture, "PNG")
+
+
+class Tracer1(Tracer):
+
+    """
+        Only the last function that performs the trace is required.
+        The rest of the functions were needed to check the C code,
+            and some may not work (they checked the robotability of the C functions, which were later changed.
+        If you need to change the C code, you will need to compile it into a shared file (.so).
+            To do this, write the following line in the terminal:
+            gcc -shared -fPIC -o Tracer1.so ~/Tracer1.c
+        The tracer is not perfect. It has a hardcode (the number of points for averaging,
+            the approximate period in pixels, and the required number of lines).
+            Later, hardcode will be removed from the code.
+    """
+
+    def _draw_array(self, array, flag, input, output):
+        if flag == 0:
+            image = Image.open(input)
+        else:
+            image = Image.new("RGB", (self._height, 256), (255, 255, 255))
+        draw = ImageDraw.Draw(image)
+        result = []
+        for i in range(len(array)):
+            result.append((i, array[i]))
+        draw.line(result, (0, 0, 0), 1)
+        del draw
+        image.save(output, "PNG")
+
+    def _draw_vertical_lines(self, array, length, input, output):
+        img = Image.open(input)
+        draw = ImageDraw.Draw(img)
+        for i in range(length):
+            draw.line([(array[i], 0), (array[i], 255)], (0, 255, 0), 1)
+        del draw
+        img.save(output, "PNG")
+
+    def _draw_horizontal_lines(self, y, length, input, output):
+        img = Image.open(input)
+        draw = ImageDraw.Draw(img)
+        draw.line([(0, y), (length, y)], (0, 255, 0), 1)
+        del draw
+        img.save(output, "PNG")
+
+    def _test_int_max(self, nparray, length):
+        c_p = POINTER(c_int32)
+        nparray = nparray.astype(np.int32)
+        self._lib.restypes = c_int
+        self._lib.argtypes = c_p, c_int
+        x = self._lib.int_max(nparray.ctypes.data_as(c_p), length)
+        print(x, max(nparray))
+
+    def _test_int_min(self, nparray, length):
+        c_p = POINTER(c_int32)
+        nparray = nparray.astype(np.int32)
+        self._lib.restypes = c_int
+        self._lib.argtypes = c_p, c_int
+        x = self._lib.int_min(nparray.ctypes.data_as(c_p), length)
+        print(x, min(nparray))
+
+    def _test_double_max(self, nparray, length):
+        c_p1 = POINTER(c_double)
+        c_p2 = POINTER(c_double)
+        nparray = nparray.astype(np.double)
+        result = np.array([0.0])
+        result = result.astype(np.double)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_int, c_p2
+        self._lib.double_max(nparray.ctypes.data_as(c_p1), length, result.ctypes.data_as(c_p1))
+        print(result[0], max(nparray), length)
+        print(nparray)
+
+    def _test_double_min(self, nparray, length):
+        c_p1 = POINTER(c_double)
+        c_p2 = POINTER(c_int)
+        c_p3 = POINTER(c_double)
+        nparray = nparray.astype(np.double)
+        npnumber = np.array([0])
+        npnumber = npnumber.astype(np.int)
+        npresult = np.array([0])
+        npresult = npresult.astype(np.double)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_int, c_p2, c_p3
+        self._lib.double_min(nparray.ctypes.data_as(c_p1), length, npnumber.ctypes.data_as(c_p2), npresult.ctypes.data_as(c_p3))
+        print(npresult[0], min(nparray))
+
+    def _test_int_array_averaging(self, array):
+        length = len(array)
+        self.draw_array(array, 1, length, "img1")
+        c_p1 = POINTER(c_int32)
+        c_p2 = POINTER(c_int32)
+        array = array.astype(np.int32)
+        average_array = array.astype(np.int32)
+        self._lib.restypes = None
+        self._lib.argtypes = c_int, c_int, c_p1, c_p2
+        self._lib.int_array_averaging(2, length, array.ctypes.data_as(c_p1), average_array.ctypes.data_as(c_p2))
+        self.draw_array(average_array, 1, length,  "img2")
+
+    def _int_array_averaging(self, array, parameter_averaging):
+        length = len(array)
+        c_p1 = POINTER(c_int32)
+        c_p2 = POINTER(c_int32)
+        array = array.astype(np.int32)
+        average_array = array.astype(np.int32)
+        self._lib.restypes = None
+        self._lib.argtypes = c_int, c_int, c_p1, c_p2
+        self._lib.int_array_averaging(parameter_averaging, length, array.ctypes.data_as(c_p1), average_array.ctypes.data_as(c_p2))
+        return average_array
+
+    def _test_search_minimal_half_period(self, array, length):
+        c_p1 = POINTER(c_int32)
+        array = array.astype(np.int32)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_int, c_int
+        period = self._lib.search_minimal_period(array.ctypes.data_as(c_p1), length, 10)
+        print("period =", period)
+
+    def _search_minimal_half_period(self, array, length):
+        c_p1 = POINTER(c_int32)
+        array = array.astype(np.int32)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_int, c_int
+        period = self._lib.search_minimal_period(array.ctypes.data_as(c_p1), length, 10)
+        return period
+
+    def _test_create_array_square_deviation(self, array, parameter):
+        length = len(array)
+        self.draw_array(array, 1, "img1", "img1")
+        c_p1 = POINTER(c_int32)
+        c_p2 = POINTER(c_int32)
+        array = array.astype(np.int32)
+        average_array = array.astype(np.int32)
+        self._lib.restypes = None
+        self._lib.argtypes = c_int, c_int, c_p1, c_p2
+        self._lib.int_array_averaging(2, length, array.ctypes.data_as(c_p1), average_array.ctypes.data_as(c_p2))
+        c_p3 = POINTER(c_double)
+        square_deviatios = array.astype(np.double)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p2, c_int, c_int, c_p3
+        self._lib.create_array_square_deviation(average_array.ctypes.data_as(c_p2), length, parameter, square_deviatios.ctypes.data_as(c_p3))
+        m = max(square_deviatios)
+        for i in range(length):
+            square_deviatios[i] = square_deviatios[i] * 256 / m
+        self.draw_array(square_deviatios, 1, "input", "output")
+
+    def _create_array_square_deviation(self, array, parameter_averaging, parameter_big_avereging):
+        length = len(array)
+        average_array = self.int_array_averaging(array, parameter_averaging)
+        c_p1 = POINTER(c_double)
+        c_p2 = POINTER(c_double)
+        square_deviatios = array.astype(np.double)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_int, c_int, c_p2
+        self._lib.create_array_square_deviation(average_array.ctypes.data_as(c_p1), length, parameter_big_avereging, square_deviatios.ctypes.data_as(c_p2))
+        return square_deviatios
+
+    def _rough_search_lows(self, array, parameter_averaging, parameter_big_avereging):
+        length = len(array)
+        square_deviatios = self.create_array_square_deviation(array, parameter_averaging, parameter_big_avereging)
+        period = self.search_minimal_half_period(array, length)
+        c_p1 = POINTER(c_double)
+        c_p2 = POINTER(c_int32)
+        c_p3 = POINTER(c_int)
+        rough_mins = array.astype(np.int32)
+        amount_rough_mins = np.array([0])
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_int, c_int, c_p2, c_p3
+        self._lib.rough_search_lows(square_deviatios.ctypes.data_as(c_p1), length, period,
+                                    rough_mins.ctypes.data_as(c_p2), amount_rough_mins.ctypes.data_as(c_p3))
+        res_rough_mins = np.zeros(amount_rough_mins[0])
+        res_rough_mins = res_rough_mins.astype(np.int)
+        for i in range(amount_rough_mins[0]):
+            res_rough_mins[i] = rough_mins[i]
+        return res_rough_mins
+
+    def _test_rough_search_lows(self, array, parameter_averaging, parameter_big_avereging):
+        rough_mins = self.rough_search_lows(array, parameter_averaging, parameter_big_avereging)
+        amount_rough_mins = len(rough_mins)
+        self.draw_vertical_lines(rough_mins, amount_rough_mins, "/home/vladimir/projects_py/img2",
+                                 "/home/vladimir/projects_py/rough.png")
+        print(rough_mins)
+        print(amount_rough_mins)
+        print(type(rough_mins[0]))
+
+    def _accurate_search_extremes(self, array, parameter_averaging, parameter_big_avereging):
+        average_array = self.int_array_averaging(array, parameter_averaging)
+        rough_extrems = self.rough_search_lows(array, parameter_averaging, parameter_big_avereging)
+        amount_rough_extrems = rough_extrems.shape[0]
+        rough_extrems = rough_extrems.astype(np.int32)
+        accurate_extrems = rough_extrems.astype(np.int32)
+        c_p1 = POINTER(c_int32)
+        c_p2 = POINTER(c_int32)
+        c_p3 = POINTER(c_int32)
+        self._lib.restypes = c_int
+        self._lib.argtypes = c_p1, c_int, c_p2, c_p3
+        amount_extrems = self._lib.accurate_search_extremes(rough_extrems.ctypes.data_as(c_p1), amount_rough_extrems,
+                                                            average_array.ctypes.data_as(c_p2), accurate_extrems.ctypes.data_as(c_p3))
+        amount_extrems = amount_extrems - 1
+        result_accurate_extrems = np.zeros(amount_extrems)
+        result_accurate_extrems = result_accurate_extrems.astype(np.int)
+        for i in range(amount_extrems):
+            result_accurate_extrems[i] = accurate_extrems[i]
+        return result_accurate_extrems
+
+    def _test_accurate_search_extremes(self, array, parameter_averaging, parameter_big_avereging):
+        accurate_extrems = self.accurate_search_extremes(array, parameter_averaging, parameter_big_avereging)
+        amount_extrems = len(accurate_extrems)
+        self.draw_vertical_lines(accurate_extrems, amount_extrems, "/home/vladimir/projects_py/img2",
+                                 "/home/vladimir/projects_py/accurate.png")
+        if amount_extrems != 0:
+            print(amount_extrems)
+            print(accurate_extrems)
+        else:
+            print("amount of extrems = 0!!!!!!!")
+
+    def _test_load_matrix(self):
+        c_p = POINTER(c_int32)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p, c_int, c_int
+        self._lib.test_load(self._matrix.ctypes.data_as(c_p), self._height, self._width)
+
+    def _get_matrix(self):
+        return self._matrix
+
+    def trace(self, int_array_parameter, period, true_amount_lines):
+        amount_lines = np.array([0])
+        intermediate_lines = np.zeros(self._height * self._height, dtype=np.int16)
+        c_p1 = POINTER(c_int32)
+        c_p2 = POINTER(c_int16)
+        c_p3 = POINTER(c_int32)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_int, c_int, c_int, c_int, c_int, c_p2, c_p3
+        self._lib.trace(self._matrix.ctypes.data_as(c_p1), self._height, self._width, int_array_parameter,
+                        period, true_amount_lines, intermediate_lines.ctypes.data_as(c_p2), amount_lines.ctypes.data_as(c_p3))
+        self._amount_lines = amount_lines[0]
+        self._lines = np.zeros((self._amount_lines, self._width), dtype=np.int16)
+
+        for i in range(self._amount_lines):
+            for j in range(self._width):
+                self._lines[i, j] = intermediate_lines[i * self._width + j]
 
 class BasePointsModel(Observable):
     """ Содержит данные базовых точек.
