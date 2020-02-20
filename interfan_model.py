@@ -330,16 +330,147 @@ class Tracer1(Tracer):
             for j in range(self._width):
                 self._lines[i, j] = intermediate_lines[i * self._width + j]
 
-class BasePointsModel(Observable):
-    """ Содержит данные базовых точек.
-        Умеет:
-        - сохранять их в файл
-        - читать из файла
-        - добавлять базовую точку
-        - удалять базовую точку
-    """
-    def some_method(self):
-        self.notify_observers("СООБЩЕНИЕ!!!")
+class Base_points:
+    '''
+
+     The class stores information about base points in the form
+         of two one-dimensional arrays-an abscissa array and an ordinate array.
+         Arrays are created from multiple points on each line,
+         and each line has the same number of points.
+     The class can build new lines on base points using the cubic spline method.
+     The class allows you to get and change the coordinates of any base point.
+
+     '''
+    def __init__(self, tracer, full_path_to_shared_library, amount_base_points):
+        self._tracer = tracer
+        self._new_lines = self._tracer.get_lines()
+        self._lib = CDLL(full_path_to_shared_library)
+        self._amount_base_points = amount_base_points
+        self._base_points_y = np.zeros(self._amount_base_points * self._tracer._amount_lines)
+        self._base_points_y = self._base_points_y.astype(np.int16)
+        self._base_points_x = np.zeros(self._amount_base_points * self._tracer._amount_lines)
+        self._base_points_x = self._base_points_x.astype(np.int16)
+
+    def create_base_points_x(self):
+        c_p = POINTER(c_int16)
+        self._lib.restypes = None
+        self._lib.argtypes = c_int, c_int, c_int, c_p
+        self._lib.create_base_points_x(c_int(self._tracer._width), c_int(self._tracer._amount_lines),
+                                       c_int(self._amount_base_points), self._base_points_x.ctypes.data_as(c_p))
+
+    def _test_base_points_x(self):
+        c_p = POINTER(c_int16)
+        self._lib.restypes = None
+        self._lib.argtypes = c_int, c_int, c_int, c_p
+        self._lib.test_base_points_x(c_int(self._tracer._width), c_int(self._tracer._amount_lines),
+                                     c_int(self._amount_base_points), self._base_points_x.ctypes.data_as(c_p))
+
+    def create_base_points_y(self):
+        c_p1 = POINTER(c_int16)
+        c_p2 = POINTER(c_int16)
+        c_p3 = POINTER(c_int16)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_p2, c_int, c_int, c_int, c_p3
+        self._lib.create_base_points_y(self._new_lines.ctypes.data_as(c_p1), self._base_points_x.ctypes.data_as(c_p2),
+                                       c_int(self._tracer._width), c_int(self._tracer._amount_lines),
+                                       c_int(self._amount_base_points), self._base_points_y.ctypes.data_as(c_p3))
+
+    def _test_base_points_y(self):
+        c_p1 = POINTER(c_int16)
+        c_p2 = POINTER(c_int16)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_p2, c_int, c_int, c_int
+        self._lib.create_base_points_y(self._new_lines.ctypes.data_as(c_p1), self._base_points_x.ctypes.data_as(c_p2),
+                                       c_int(self._tracer._width), c_int(self._tracer._amount_lines),
+                                       c_int(self._amount_base_points))
+
+    def _load_lines(self, full_path):
+        file = open(full_path, "w")
+
+        for i in range(self._tracer._amount_lines):
+            for j in range(self._tracer._width):
+                s = str(self._new_lines[i, j]) + '\n'
+                file.write(s)
+        file.close()
+
+    def create_new_lines(self):
+        c_p1 = POINTER(c_int16)
+        c_p2 = POINTER(c_int16)
+        c_p3 = POINTER(c_int16)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_int, c_int, c_int, c_p2, c_p3
+        self._lib.create_new_lines(self._new_lines.ctypes.data_as(c_p1), c_int(self._tracer._width),
+                                   c_int(self._tracer._amount_lines), c_int(self._amount_base_points),
+                                   self._base_points_y.ctypes.data_as(c_p2), self._base_points_x.ctypes.data_as(c_p3))
+
+    def get_border_coordinates_point(self, number_line, number_point):
+        if number_point == 0:
+            result_x1 = 0
+            result_x2 = self._base_points_x[number_line * self._amount_base_points + 1] - 1
+        elif number_point == self._amount_base_points - 1:
+            result_x1 = self._base_points_x[number_line * self._amount_base_points + self._amount_base_points - 2]
+            result_x2 = self._tracer._width - 1
+        else:
+            result_x1 = self._base_points_x[number_line * self._amount_base_points + number_point - 1]
+            result_x2 = self._base_points_x[number_line * self._amount_base_points + number_point + 1] - 1
+        return (result_x1, result_x2)
+
+    def get_coordinates_base_point(self, number_line, number_point):
+        return (self._base_points_x[number_line * self._amount_base_points + number_point],
+                self._base_points_y[number_line * self._amount_base_points + number_point])
+
+    def change_coordinates_point(self, number_line, number_point, new_point):
+        border = self.get_border_coordinates_point(number_line, number_point)
+        x1 = border[0]
+        x2 = border[1]
+        x = new_point[0]
+        y = new_point[1]
+        if (x1 <= x and x <= x2):
+            self._base_points_x[number_line * self._amount_base_points + number_point] = x
+            self._base_points_y[number_line * self._amount_base_points + number_point] = y
+            self.create_new_lines()
+
+    def mark_points(self, initional_picture, result_picture):
+        image = Image.open(initional_picture)
+        draw = ImageDraw.Draw(image)
+        for i in range(self._tracer._amount_lines):
+            for j in range(self._amount_base_points):
+                x = self._base_points_x[i * self._amount_base_points + j]
+                y = self._base_points_y[i * self._amount_base_points + j]
+                if x == 0:
+                    if y == 0:
+                        line1 = [(x, y), (x + 1, y + 1), (x + 2, y + 2)]
+                        line2 = []
+                    elif y == self._tracer._height - 1:
+                        line1 = []
+                        line2 = [(x, y), (x + 1, y - 1), (x + 2, y - 2)]
+                    else:
+                        line1 = [(x, y), (x + 1, y + 1), (x + 2, y + 2)]
+                        line2 = [(x, y), (x + 1, y - 1), (x + 2, y - 2)]
+                elif x == self._tracer._width - 1:
+                    if y == 0:
+                        line1 = []
+                        line2 = [(x - 2, y + 2), (x - 1, y + 1), (x, y)]
+                    elif y == self._tracer._height - 1:
+                        line1 = [(x - 2, y - 2), (x - 1, y - 1), (x, y)]
+                        line2 = []
+                    else:
+                        line1 = [(x - 2, y - 2), (x - 1, y - 1), (x, y)]
+                        line2 = [(x - 2, y + 2), (x - 1, y + 1), (x, y)]
+                else:
+                    if y == 0:
+                        line1 = []
+                        line2 = [(x - 2, y - 2), (x - 1, y - 1), (x, y), (x + 1, y - 1), (x +2, y - 2)]
+                    elif y == self._tracer._height - 1:
+                        line1 = [(x - 2, y + 2), (x - 1, y + 1), (x, y), (x + 1, y + 1), (x +2, y + 2)]
+                        line2 = []
+                    else:
+                        line1 = [(x - 2, y - 2), (x - 1, y - 1), (x, y), (x + 1, y - 1), (x +2, y - 2)]
+                        line2 = [(x - 2, y + 2), (x - 1, y + 1), (x, y), (x + 1, y + 1), (x +2, y + 2)]
+                draw.line(line1, (255, 255, 255), 1)
+                draw.line(line2, (255, 255, 255), 1)
+        del draw
+        image.save(result_picture, "PNG")
 
 
 class LinesModel(Observable):
