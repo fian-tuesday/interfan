@@ -52,7 +52,6 @@ class InterferogramModel:
     def get_height(self):
         return self.__NpImage.shape[0]
 
-
 class Tracer:
 
     """
@@ -89,7 +88,6 @@ class Tracer:
             array.clear()
             del draw
         image.save(result_picture, "PNG")
-
 
 class Tracer1(Tracer):
 
@@ -472,6 +470,71 @@ class Base_points:
         del draw
         image.save(result_picture, "PNG")
 
+class Phaser:
+    '''
+
+        The class can calculate the phase of each point
+            along lines and calculate the difference between two phase patterns
+        Also the class can draw the difference phase
+
+    '''
+    def __init__(self, unchanged_lines, changed_lines, width, height, amount_lines, full_path_to_shared_library):
+        self._unchanged_lines = unchanged_lines
+        self._changed_lines = changed_lines
+        self._width = width
+        self._height = height
+        self._amount_lines = amount_lines
+        self._unchanged_phase  = np.zeros(width * height)
+        self._unchanged_phase = self._unchanged_phase.astype(np.double)
+        self._changed_phase  = np.zeros(width * height)
+        self._changed_phase = self._changed_phase.astype(np.double)
+        self._lib = CDLL(full_path_to_shared_library)
+        self._phase_difference = np.zeros(width * height)
+        self._phase_difference = self._phase_difference.astype(np.int16)
+
+    def create_unchanged_and_changed_phase(self):
+        c_p1 = POINTER(c_int16)
+        c_p2 = POINTER(c_double)
+        self._lib.restypes = None
+        self._lib.argtypes = c_int, c_int, c_p1, c_int, c_p2
+        self._lib.create_phase2(c_int(self._width), c_int(self._height), self._unchanged_lines.ctypes.data_as(c_p1),
+                                c_int(self._amount_lines), self._unchanged_phase.ctypes.data_as(c_p2))
+        c_p3 = POINTER(c_int16)
+        c_p4 = POINTER(c_double)
+        self._lib.restypes = None
+        self._lib.argtypes = c_int, c_int, c_p3, c_int, c_p4
+        self._lib.create_phase2(c_int(self._width), c_int(self._height), self._changed_lines.ctypes.data_as(c_p3),
+                                c_int(self._amount_lines), self._changed_phase.ctypes.data_as(c_p4))
+
+    def _test_create_unchanged_and_changed_phase(self):
+        for i in range(self._height):
+            for j in range(self._width):
+                print(self._changed_phase[i * self._width + j])
+            print("***************************************************************")
+
+    def calculate_phase_difference(self):
+        c_p1 = POINTER(c_double)
+        c_p2 = POINTER(c_double)
+        c_p3 = POINTER(c_int16)
+        self._lib.restypes = None
+        self._lib.argtypes = c_int, c_int, c_p1, c_p2, c_p3
+        self._lib.calculate_phase_difference(c_int(self._width), c_int(self._height),
+                                             self._unchanged_phase.ctypes.data_as(c_p1),
+                                             self._changed_phase.ctypes.data_as(c_p2),
+                                             self._phase_difference.ctypes.data_as(c_p3))
+
+    def draw_phase_difference(self, picture):
+        image = Image.new("RGB", (self._width, self._height), (0, 0, 0))
+        draw = ImageDraw.Draw(image)
+        for i in range(self._width):
+            for j in range(self._height):
+                collor = self._phase_difference[i * self._height + j]
+                draw.point([(i, j)], (collor, collor, collor))
+        del draw
+        image.save(picture, "PNG")
+
+    def get_phase_difference(self):
+        return self._phase_difference
 
 class LinesModel(Observable):
     """ Содержит данные интерференционных линий в виде последовательности точек Point(x, y).
@@ -483,7 +546,6 @@ class LinesModel(Observable):
         - для заданного номера линии и заданной координаты x возвращать
     """
     pass
-
 
 class PhasesModel(Observable):
     """ Содержит данные фазовой картинки
