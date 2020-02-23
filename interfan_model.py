@@ -313,7 +313,7 @@ class Tracer1(Tracer):
 
     def trace(self, int_array_parameter, period, true_amount_lines):
         amount_lines = np.array([0])
-        intermediate_lines = np.zeros(self._height * self._height, dtype=np.int16)
+        intermediate_lines = np.zeros(self._width * self._amount_lines, dtype=np.int16)
         c_p1 = POINTER(c_int32)
         c_p2 = POINTER(c_int16)
         c_p3 = POINTER(c_int32)
@@ -400,18 +400,6 @@ class Base_points:
         self._lib.create_new_lines(self._new_lines.ctypes.data_as(c_p1), c_int(self._tracer._width),
                                    c_int(self._tracer._amount_lines), c_int(self._amount_base_points),
                                    self._base_points_y.ctypes.data_as(c_p2), self._base_points_x.ctypes.data_as(c_p3))
-
-    def get_border_coordinates_point(self, number_line, number_point):
-        if number_point == 0:
-            result_x1 = 0
-            result_x2 = self._base_points_x[number_line * self._amount_base_points + 1] - 1
-        elif number_point == self._amount_base_points - 1:
-            result_x1 = self._base_points_x[number_line * self._amount_base_points + self._amount_base_points - 2]
-            result_x2 = self._tracer._width - 1
-        else:
-            result_x1 = self._base_points_x[number_line * self._amount_base_points + number_point - 1]
-            result_x2 = self._base_points_x[number_line * self._amount_base_points + number_point + 1] - 1
-        return (result_x1, result_x2)
 
     def get_coordinates_base_point(self, number_line, number_point):
         return (self._base_points_x[number_line * self._amount_base_points + number_point],
@@ -536,14 +524,14 @@ class Phaser:
     def get_phase_difference(self):
         return self._phase_difference
 
-class LinesModel(Observable):
+class LinesModel:
     """ Содержит данные интерференционных линий в виде последовательности точек Point(x, y).
         Умеет:
         - сохранять их в файл
         - читать из файла
         - перемещать точку в заданной линии
         - добавлять точку в середину отрезка заданной линии
-        - для заданного номера линии и заданной координаты x возвращать
+        - для заданного номера линии и заданной координаты x возвращать координаты точки
     """
     pass
 
