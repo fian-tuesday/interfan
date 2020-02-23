@@ -131,37 +131,66 @@ void double_array_averaging(int double_array_parameter, int length, double* in_a
 	}
 }
 
-int search_minimal_period(int* array, int length, int very_average_array_parameter) {
+int calculate_amount_intersections(int* array, int length, int y, int* array_intersections) {
+    int amount = 0;
 
-	//finding the minimum period of a periodic function that can only accept int values
+    for (int i = 0; i < length; i++) {
+        if (((array[i] <= y) && (y < array[i + 1])) ||
+            ((array[i] >= y) && (y > array[i + 1]))) {
+                array_intersections[amount] = i;
+                amount++;
+            }
+    }
+    return amount;
+}
 
-	int* very_averaged_array = (int*)malloc(4 * (length + 1) * sizeof(int));
-	//it is averaged array. It is needed to celculate minimal period
-	int_array_averaging(very_average_array_parameter, length, array, very_averaged_array);
-	int maximum = int_max(very_averaged_array, length);
-	int minimum = int_min(very_averaged_array, length);
-	int middle = (maximum + minimum) / 2;
-	int* array_intersections = (int*)malloc(4 * (length + 1) * sizeof(int));
-	//it is array of intersections array and line "y = middle"
-	int number = 0;     //it is amount of intersections
-	int period = length;
+int search_average_period(int* array, int length) {
+    int* array_intersections = (int*)malloc(16 * (length + 1) * sizeof(int));
+    int* array_amounts = (int*)malloc(16 * (length + 1) * sizeof(int));
+    int max = int_max(array, length), min = int_min(array, length);
+    int* array_periods = (int*)malloc(16 * (length + 1) * (max + 1) * sizeof(int));
+    int intermediate_amount = 0, intermediate_frequency = 0, true_amount = 0, true_frequency = 0;
+    int amount_intersections = 0, number_period = 0, result = length, test;
 
-	for (int i = 0; i < length; i++) {
-		if (((very_averaged_array[i] <= middle) && (middle < very_averaged_array[i + 1])) ||
-			((very_averaged_array[i] >= middle) && (middle > very_averaged_array[i + 1]))) {
-			array_intersections[number] = i;
-			number++;
-		}
-	}
-	for (int i = 0; i < number - 2; i++) {
-		if (period >(array_intersections[i + 2] - array_intersections[i]))
-			period = array_intersections[i + 2] - array_intersections[i];
-	}
+    // 0)search for the most frequent number of intersections
+    for (int y = min; y < max; y++) {
+        test = array_amounts[y - min] = calculate_amount_intersections(array, length, y, array_intersections);
+    }
+    for (int i = 0; i < max - min; i++) {
+        intermediate_amount = array_amounts[i];
+        intermediate_frequency = 0;
+        for (int j = 0; j < length; j++) {
+            if (intermediate_amount == array_amounts[j]) {
+                intermediate_frequency++;
+            }
+        }
+        if (intermediate_frequency > true_frequency) {
+            true_frequency = intermediate_frequency;
+            true_amount = array_amounts[i];
+        }
+    }
 
-	free(very_averaged_array);
-	free(array_intersections);
+    // 1) create array_periods
+    for (int y = min; y < max; y++) {
+        amount_intersections = calculate_amount_intersections(array, length, y, array_intersections);
+        if (amount_intersections == true_amount) {
+            for (int i = 0; i < true_amount - 2; i++) {
+                array_periods[number_period] = array_intersections[i + 2] - array_intersections[i];
+                test = array_periods[number_period];
+                number_period++;
+            }
+        }
+    }
 
-	return (int)(period / 2);
+    // 2) result is minimal period
+    for (int i = 0; i < number_period; i++) {
+        result = result + array_periods[i];
+    }
+    result = result / number_period;
+    free(array_intersections);
+    free(array_periods);
+    free(array_amounts);
+    return result / 2;
 }
 
 void create_array_square_deviation(int* array, int length, int period, double* result_array) {
@@ -347,7 +376,7 @@ void create_perfect_lines(short* lines, int amount_lines, int width) {
 }
 
 void trace(int* in_array, int height, int width, int int_array_parameter,
-	       int period, int true_amount_lines, short* out_array, int* amount_lines) {
+           int true_amount_lines, short* out_array, int* amount_lines) {
 
 	//creates lines
 	int* right_array = (int*)malloc(4 * (height + 1) * (width + 1) * sizeof(int));
@@ -372,8 +401,8 @@ void trace(int* in_array, int height, int width, int int_array_parameter,
     *amount_lines = height;
     for (int i = 0; i < width; i++) {
         int_array_averaging(int_array_parameter, height, right_array + i * height, average_array);
-        //period = search_minimal_period(right_array + i * height, height, very_average_array_parameter);
-        create_array_square_deviation(right_array + i * height, height, period, square_deviations);
+        search_average_period(average_array, height);
+        create_array_square_deviation(average_array, height, period, square_deviations);
         rough_search_lows1(square_deviations, height, half_period, rough_extrems, &rough_amount);
         accurate_amount = accurate_search_extremes(rough_extrems, rough_amount, average_array, accurate_extrems);
         for (int j = 0; j < accurate_amount; j++) {
