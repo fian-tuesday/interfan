@@ -541,3 +541,86 @@ class PhasesModel(Observable):
         - читать её из файла
     """
     pass
+
+
+class Noise_filter:
+
+    '''
+
+    The class can filter the original image from noise and save the filtered image
+
+    '''
+
+    def set_image(self, image):
+        self._image = Image.open(image)
+        mat = np.asarray(self._image)
+        self._matrix = mat[:, :, 1]
+        self._matrix = self._matrix.astype(np.int32)
+        self._width = self._matrix.shape[1]
+        self._height = self._matrix.shape[0]
+        self._filtered_matrix = np.zeros(self._width * self._height, dtype = np.int32)
+
+    def draw_filtered_image(self, picture):
+        image = Image.new("RGB", (self._width, self._height), (0, 0, 0))
+        draw = ImageDraw.Draw(image)
+        for i in range(self._width):
+            for j in range(self._height):
+                collor = self._filtered_matrix[i * self._height + j]
+                draw.point([(i, j)], (0, collor, 0))
+        del draw
+        image.save(picture, "PNG")
+
+    def get_filtered_matrix(self):
+        return self._filtered_matrix
+
+
+class Line_filter(Noise_filter):
+
+    '''
+
+        The class performs linear filtering.
+        The square mask initially consists of ones (standard averaging).
+            You can create a mask based on the Gaussian distribution, or you can set your own.
+
+    '''
+
+    def __init__(self, full_path_to_shared_library, mask_radius):
+        self._lib = CDLL(full_path_to_shared_library)
+        self._mask_radius = mask_radius
+        self._mask = np.ones((2 * mask_radius + 1, 2 * mask_radius + 1), dtype=np.double)
+
+    def set_mask(self, mask):
+        self._mask = np.array(mask)
+
+    def create_gaussian_mask(self, dispersion1, dispersion2):
+        c_p = POINTER(c_double)
+        self._lib.restypes = None
+        self._lib.argtypes = c_int, c_double, c_double, c_p
+        self._lib.creating_gaussian_matrix(c_int(self._mask_radius), c_double(dispersion1),
+                                           c_double(dispersion2), self._mask.ctypes.data_as(c_p))
+
+    def filtration(self):
+        c_p1 = POINTER(c_int32)
+        c_p2 = POINTER(c_double)
+        c_p3 = POINTER(c_int32)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_int, c_int, c_p2, c_int, c_p3
+        self._lib.line_filtration(self._matrix.ctypes.data_as(c_p1), c_int(self._width),
+                                  c_int(self._height), self._mask.ctypes.data_as(c_p2),
+                                  c_int(self._mask_radius), self._filtered_matrix.ctypes.data_as(c_p3))
+
+    def _test_load_image(self):
+        file = open("test_load_image_py.txt", "w")
+        for i in range(self._width):
+            for j in range(self._height):
+                s = str(self._matrix[j, i]) + '\n'
+                file.write(s)
+        file.close()
+
+        print(self._matrix)
+
+        c_p1 = POINTER(c_int32)
+        self._lib.restypes = None
+        self._lib.argtypes = c_p1, c_int, c_int
+        self._lib.test_load_image(self._matrix.ctypes.data_as(c_p1), c_int(self._width),
+                                  c_int(self._height))
