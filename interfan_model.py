@@ -175,7 +175,7 @@ class Tracer1(Tracer):
 
     def _test_int_array_averaging(self, array):
         length = len(array)
-        self.draw_array(array, 1, length, "img1")
+        self._draw_array(array, 1, length, "img1")
         c_p1 = POINTER(c_int32)
         c_p2 = POINTER(c_int32)
         array = array.astype(np.int32)
@@ -183,7 +183,7 @@ class Tracer1(Tracer):
         self._lib.restypes = None
         self._lib.argtypes = c_int, c_int, c_p1, c_p2
         self._lib.int_array_averaging(2, length, array.ctypes.data_as(c_p1), average_array.ctypes.data_as(c_p2))
-        self.draw_array(average_array, 1, length,  "img2")
+        self._draw_array(average_array, 1, length,  "img2")
 
     def _int_array_averaging(self, array, parameter_averaging):
         length = len(array)
@@ -311,19 +311,18 @@ class Tracer1(Tracer):
     def _get_matrix(self):
         return self._matrix
 
-    def trace(self, int_array_parameter, period, true_amount_lines):
+    def trace(self, int_array_parameter, true_amount_lines):
         amount_lines = np.array([0])
-        intermediate_lines = np.zeros(self._width * self._amount_lines, dtype=np.int16)
+        intermediate_lines = np.zeros(self._height * self._height, dtype=np.int16)
         c_p1 = POINTER(c_int32)
         c_p2 = POINTER(c_int16)
         c_p3 = POINTER(c_int32)
         self._lib.restypes = None
-        self._lib.argtypes = c_p1, c_int, c_int, c_int, c_int, c_int, c_p2, c_p3
+        self._lib.argtypes = c_p1, c_int, c_int, c_int, c_int, c_p2, c_p3
         self._lib.trace(self._matrix.ctypes.data_as(c_p1), self._height, self._width, int_array_parameter,
-                        period, true_amount_lines, intermediate_lines.ctypes.data_as(c_p2), amount_lines.ctypes.data_as(c_p3))
+                        true_amount_lines, intermediate_lines.ctypes.data_as(c_p2), amount_lines.ctypes.data_as(c_p3))
         self._amount_lines = amount_lines[0]
         self._lines = np.zeros((self._amount_lines, self._width), dtype=np.int16)
-
         for i in range(self._amount_lines):
             for j in range(self._width):
                 self._lines[i, j] = intermediate_lines[i * self._width + j]
