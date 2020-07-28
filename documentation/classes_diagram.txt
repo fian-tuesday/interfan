@@ -1,88 +1,88 @@
 @startuml
 
 class MainWindow #green{
-{method} __init__(self)
-{method} init_menu(self)
-{method} init_analyzer(self)
-{method} init_status(self)
-{method} init_toolbar_buttons(self)
-{method} bind_controllers(self)
-{method} load_interferogram_dialog(self)
-{method} save_phases_dialog(self)
+ __init__()
+ init_menu()
+ init_analyzer()
+ init_status()
+ init_toolbar_buttons()
+ bind_controllers()
+ load_interferogram_dialog()
+ save_phases_dialog()
 }
 
 class MultilayerWorkspace #green{
-{method} __init__(self, master)
-{method} _create_canvas(self)
+ __init__(master)
+ _create_canvas()
 }
 note "Holds canvas on which are depicted: \n interferogram \n basepoints \n lines \phase picture \n density picture \n allows to change scale of interferogram and move across it" as Nanview
 MultilayerWorkspace .. Nanview
 
 class InterferogramView #green{
-{method} __init__(self, canvas)
-{method} update(self, message)
+ __init__(canvas)
+ update(message)
 }
 note "Holds on canvas the picture of interferogram" as Nintview
 InterferogramView .. Nintview
 
 class BasePointsView #green{
-{method} __init__(self, canvas)
-{method} update(self, message)
+ __init__(canvas)
+ update(message)
 }
 note "Holds on canvas the picture of base points" as Nbaseview
 BasePointsView .. Nbaseview
 
 class LinesView #green{
-{method} __init__(self, canvas)
-{method} update(self, message)
+ __init__(canvas)
+ update(message)
 }
-note "Holds on canvas the picture of lines" as Nlinesview
+note "Holds the picture of lines on the canvas" as Nlinesview
 LinesView .. Nlinesview
 
 class PhasesView #green{
-{method} __init__(self, canvas)
-{method} update(self, message)
+ __init__(canvas)
+ update(message)
 }
-note "Holds on canvas the picture of phases" as Nphaseview
+note "Holds the picture of phases on the canvas" as Nphaseview
 PhasesView .. Nphaseview
 
 class StatusBar.Frame #green{
-{method} __init__(self, master)
-{method} set(self, format_string, *args)
-{method} clear(self)
+ __init__(master)
+ set(format_string, *args)
+ clear()
 }
 
 class MultilayerWorkspaceControl #red{
-{method} __init__(self, view: MultilayerWorkspace)
+ __init__(view: MultilayerWorkspace)
 }
 
 class InterferogramControl #red{
-{method} __init__(self, model: InterferogramModel)
+ __init__(model: InterferogramModel)
 }
 
 class BasePointsControl #red{
-{method} __init__(self, model: BasePointsModel)
+ __init__(model: BasePointsModel)
 }
 
 class LinesControl #red{
-{method} __init__(self, model: LinesModel)
+ __init__(model: LinesModel)
 }
 
 class PhasesControl #red{
-{method} __init__(self, model: LinesModel)
+ __init__(model: LinesModel)
 }
 
 
 class InterferogramModel #blue{
-{method} set_image(self, s)
-{method} open_image(self)
-{method} prepared_image(self)
-{method} get_image_npmatrix(self)
-{method} get_canal_pixel(self, y, x, c)
-{method} get_rgb_pixel(self, y, x)
-{method} get_green_section(self, x)
-{method} get_width(self)
-{method} get_height(self)
+ set_image(s)
+ open_image()
+ prepared_image()
+ get_image_npmatrix()
+ get_canal_pixel(y, x, c)
+ get_rgb_pixel(y, x)
+ get_green_section(x)
+ get_width()
+ get_height()
 }
 note "Contains the data of the interferogram. \n Can: \n store the image of the interferogram \n store image as numpy matrix \n get the whole numpy matrix \n get rgb pixel \n get any channel of the pixel (0-r, 1 - g and so on) \n get green section \n get width and height of image" as Ninterferogram
 InterferogramModel .. Ninterferogram
