@@ -1,0 +1,5 @@
+
+брокер сообщений RabbitMQ 
+
+https://habr.com/ru/post/149694/
+https://habr.com/ru/post/150134/
