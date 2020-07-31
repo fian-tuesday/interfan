@@ -1,0 +1,61 @@
+@startuml
+
+class Interferogram #blue
+note up "Contains the data of the interferogram. \n Can: \n store the image of the interferogram \n store image as numpy matrix \n get the whole numpy matrix \n get rgb pixel \n get any channel of the pixel (0-r, 1 - g and so on) \n get green section \n get width and height of image"
+
+class BasePoints #blue
+note up "Contains data of base points \n Can: \n save base points in file \n read base points from file \n add base points \n delete base points"
+
+class Fringes #blue
+note up "contains information about fringes as sequence of coordinates P(x,y)\n Can: \n save points into file \n read points from file \n move a point along its line \n add a point in the middle of a line \n"
+
+class Phases #blue
+note up "contains phase map \n Can: \n save phase map to file \n read phase map from a fiel"
+
+class Density #blue
+note "contains density map \n Can: \n save density map to file \n read density map from a file"
+
+Interferogram -right[#0000BB]- BasePoints
+BasePoints -right[#0000BB]- Fringes
+Fringes -right[#0000BB]- Phases
+Phases -right[#0000BB]- Density
+
+
+class BasePointsFinder #yellow
+note down "Chooses base points \n to trace fringes."
+
+class Tracer #yellow
+note down "Traces fringes \n from base points."
+
+class Phaser #yellow
+note down "Creates phase map."
+
+class Densifier #yellow
+note down "Creates image of \n electronic plasma density."
+
+(Interferogram, BasePoints) .down[#FFFF00]. BasePointsFinder
+(BasePoints, Fringes) .down[#FFFF00]. FringeTracer
+(Fringes, Phases) .down[#FFFF00]. Phaser
+(Phases, Density) .down[#FFFF00]. Densifier
+
+
+/'
+AnalyzerView o-down[#green]- InterferogramView
+AnalyzerView o-down[#green]- BasePointsView
+AnalyzerView o-down[#green]- LinesView
+AnalyzerView o-down[#green]- InterferogramView
+AnalyzerView o-down[#green]- PhasesView
+
+InterferogramView <-down[#FF00FF]- InterferogramControl: button
+BasePointsView <-down[#FF00FF]- BasePointsControl : button
+LinesView <-down[#FF00FF]- LinesControl : button
+PhasesView <-down[#FF00FF]- PhasesControl : button
+
+InterferogramControl -down[#red]-> InterferogramModel: observes
+BasePointsControl -down[#red]-> BasePointsModel : observes
+LinesControl -down[#red]-> LinesModel : observes
+PhasesControl -down[#red]-> PhasesModel : observes
+AnalyzerControl -down[#red]- AnalyzerModel
+'/'
+
+@enduml
