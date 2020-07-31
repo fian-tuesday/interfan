@@ -1,7 +1,6 @@
 @startuml
 
-class MainWindow #green{
-    __init__()
+class MainWindow{
     _init_menu()
     _init_toolbar()
     _init_status_line()
@@ -13,32 +12,37 @@ class MainWindow #green{
     save_phases_dialog()
 }
 
-MainWindow o-down[#olive]- MainMenu
-MainWindow o-down[#olive]- Toolbar
-MainWindow o-down[#olive]- StatusLine
-MainWindow o-down[#olive]- ScalableCanvas
-MainWindow o-down[#olive]- ControlFrame
-MainWindow o-down[#olive]- LayersSelector
+class MainMenu
+class Toolbar
+class StatusLine
 
-class MainMenu #blue
-class Toolbar # blue
-class StatusLine #blue {
-    set(format_string, *args)
-    clear()
-}
 
-class ScalableCanvas #yellow {
+class ScalableCanvas{
     scale_image(percent)
     crawl(dx, dy)
     get_coords(x, y)
 }
-note "Holds canvas for layers. \n Can change scale of image \n and crawl across it."
 
-class ControlFrame #yellow {
-}
-note "Configures and starts \n calculations."
+/'note down
+    Can change scale of image
+    and crawl across it.
+end note
+'/
 
-class LayersSelector #yellow {
+class ControlFrame{
 }
+'note "Configures and starts \n calculations."
+
+class LayersSelector{
+}
+
+hide members
+
+MainWindow o-down- MainMenu
+MainWindow o-down- Toolbar
+MainWindow o-down- StatusLine
+MainWindow o-down- ScalableCanvas
+MainWindow o-down- ControlFrame
+MainWindow o-down- LayersSelector
 
 @enduml
