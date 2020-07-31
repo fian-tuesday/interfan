@@ -1,0 +1,25 @@
+@startuml
+
+node "Client's desktop computer"{
+
+    [GUI component of Interfan.] as client
+
+    folder "Images of \n interferograms and plasma density\n " as images
+
+    client .. images
+}
+
+queue "Message broker" as rabbit
+
+
+node "High performance server" {
+    [Server component of Interfan] as server
+
+    folder "cache of images" as cache
+    server .. cache
+}
+
+client -right- rabbit
+rabbit -right- server
+
+@enduml
