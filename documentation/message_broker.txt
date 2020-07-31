@@ -1,5 +1,19 @@
 
-брокер сообщений RabbitMQ 
+брокер сообщений RabbitMQ по протоколу AMQP
 
 https://habr.com/ru/post/149694/
 https://habr.com/ru/post/150134/
+https://habr.com/ru/post/236221/ клиент и масштабируемый RPC сервер
+
+
+Ставим (https://evilinside.ru/chto-takoe-rabbitmq-zachem-on-nuzhen-i-kak-ego-ispolzovat/#):
+
+# sudo apt-get install rabbitmq-server
+
+	rabbitmq-server не запускается, если в файле /etc/hostname у тебя прописано имя с точками.
+
+Теперь добавляем пользователя и выдаём ему права, с помощью rabbitmqcli:
+
+# rabbitmqctl add_user username password
+# rabbitmqctl set_user_tags username administrator
+# rabbitmqctl set_permissions -p / username ".*" ".*" ".*"
