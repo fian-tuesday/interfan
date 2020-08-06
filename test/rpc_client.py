@@ -10,13 +10,13 @@ class FibonacciRpcClient(object):
 
         self.channel = self.connection.channel()
 
-        result = self.channel.queue_declare(exclusive=True)
+        result = self.channel.queue_declare('', exclusive=True)
         self.callback_queue = result.method.queue
         self.response = None
         self.corr_id = None
 
-        self.channel.basic_consume(self.on_response, no_ack=True,
-                                   queue=self.callback_queue)
+        self.channel.basic_consume(self.callback_queue,
+                                   self.on_response, auto_ack=True)
 
     def on_response(self, ch, method, props, body):
         if self.corr_id == props.correlation_id:
@@ -39,6 +39,7 @@ class FibonacciRpcClient(object):
 
 fibonacci_rpc = FibonacciRpcClient()
 
-print(" [x] Requesting fib(30)")
-response = fibonacci_rpc.call(30)
-print(" [.] Got %r" % (response,))
+for i in range(31):
+    print(f" [x] Requesting fib({i})")
+    response = fibonacci_rpc.call(i)
+    print(" [.] Got %r" % (response,))
