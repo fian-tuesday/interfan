@@ -2,7 +2,8 @@
 import pika
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host='localhost'))
+            host='192.168.0.180', port=5672,
+            credentials=pika.PlainCredentials('rabbit_client', 'rhjkbrbgbnjy')))
 
 channel = connection.channel()
 

@@ -6,7 +6,8 @@ import uuid
 class FibonacciRpcClient(object):
     def __init__(self):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(
-                host='localhost'))
+            host='192.168.0.180', port=5672,
+            credentials=pika.PlainCredentials('rabbit_client', 'rhjkbrbgbnjy')))
 
         self.channel = self.connection.channel()
 
@@ -28,8 +29,8 @@ class FibonacciRpcClient(object):
         self.channel.basic_publish(exchange='',
                                    routing_key='rpc_queue',
                                    properties=pika.BasicProperties(
-                                         reply_to = self.callback_queue,
-                                         correlation_id = self.corr_id,
+                                         reply_to=self.callback_queue,
+                                         correlation_id=self.corr_id,
                                          ),
                                    body=str(n))
         while self.response is None:
