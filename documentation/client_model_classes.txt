@@ -20,6 +20,9 @@ BasePoints -right[#0000BB]- Fringes
 Fringes -right[#0000BB]- Phases
 Phases -right[#0000BB]- Density
 
+class ImageFilter #yellow
+
+Interferogram -down[#0000BB]- ImageFilter
 
 class BasePointsFinder #yellow
 'note down "Chooses base points \n to trace fringes."
