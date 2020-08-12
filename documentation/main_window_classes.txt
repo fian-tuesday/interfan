@@ -29,7 +29,7 @@ class ScalableCanvas{
 end note
 '/
 
-class ControlFrame{
+class ProcessingControl{
 }
 'note "Configures and starts \n calculations."
 
@@ -42,7 +42,8 @@ MainWindow o-down- MainMenu
 MainWindow o-down- Toolbar
 MainWindow o-down- StatusLine
 MainWindow o-down- ScalableCanvas
-MainWindow o-down- ControlFrame
+MainWindow o-down- ProcessingControl
 MainWindow o-down- LayersSelector
+MainWindow o-down- History
 
 @enduml
