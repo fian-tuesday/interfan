@@ -1,5 +1,7 @@
 @startuml
 
+hide members
+
 class Interferogram #green
 'note up "Contains the data of the interferogram. \n Can: \n store the image of the interferogram \n store image as numpy matrix \n get the whole numpy matrix \n get rgb pixel \n get any channel of the pixel (0-r, 1 - g and so on) \n get green section \n get width and height of image"
 
@@ -22,8 +24,6 @@ Phases -right[#0000BB]- Density
 
 class Filter #yellow
 
-Interferogram -down[#0000BB]- Filter
-
 class BasePointsFinder #yellow
 'note down "Chooses base points \n to trace fringes."
 
@@ -36,10 +36,11 @@ class Phaser #yellow
 class Densifier #yellow
 'note down "Creates image of \n electronic plasma density."
 
-(Interferogram, BasePoints) .down[#FFFF00]. BasePointsFinder
-(BasePoints, Fringes) .down[#FFFF00]. FringeTracer
-(Fringes, Phases) .down[#FFFF00]. Phaser
-(Phases, Density) .down[#FFFF00]. Densifier
+Interferogram .down. Filter
+(Interferogram, BasePoints) .down. BasePointsFinder
+(BasePoints, Fringes) .down. FringeTracer
+(Fringes, Phases) .down. Phaser
+(Phases, Density) .down. Densifier
 
 
 /'
