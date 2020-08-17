@@ -1,4 +1,5 @@
 @startuml
+skinparam monochrome true
 
 node "Client's desktop computer"{
 

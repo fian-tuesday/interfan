@@ -1,5 +1,7 @@
 @startuml
 
+skinparam monochrome true
+
 class MainWindow{
     _init_menu()
     _init_toolbar()
