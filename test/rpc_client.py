@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 import pika
 import uuid
+import os
+
+RABBIT_HOST = os.environ.get('RABBIT_HOST', 'localhost')
+RABBIT_USER = os.environ.get('RABBIT_USER', 'guest')
+RABBIT_PASSWORD = os.environ.get('RABBIT_PASSWORD', '')
 
 
 class FibonacciRpcClient(object):
     def __init__(self):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(
-            host='192.168.0.180', port=5672,
-            credentials=pika.PlainCredentials('rabbit_client', 'rhjkbrbgbnjy')))
+            host=RABBIT_HOST, port=5672,
+            credentials=pika.PlainCredentials(RABBIT_USER, RABBIT_PASSWORD)))
 
         self.channel = self.connection.channel()
 
