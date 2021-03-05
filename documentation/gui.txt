@@ -1,0 +1,12 @@
+@startsalt
+{#
+    {S          |    {
+    Canvas      |    ProcessingControl
+    .           |    .
+    .           |    .
+    .           |    .
+    .           |    .
+    }           |    }
+}
+@endsalt
+
