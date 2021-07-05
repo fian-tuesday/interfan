@@ -1,4 +1,3 @@
-docstring_parser
 pyside6
 Pillow
 numpy

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from docstring_parser import parse
+import numpy as np
 from PySide6 import QtCore
 
 from monkey_callbacks import *
@@ -17,7 +18,7 @@ class SettingsItem:
 
 
 class Stage(QtCore.QObject):
-    ready_signal = QtCore.Signal()
+    ready_signal = QtCore.Signal(int)
 
     def __init__(self, stage_number, callback, visualizer, input_data=None):
         super().__init__()
@@ -26,6 +27,7 @@ class Stage(QtCore.QObject):
         self.visualizer = visualizer
         self.input_data = input_data
         self.result = None
+        self.image = None
         self.is_run = False
 
         # Parse settings
@@ -33,22 +35,43 @@ class Stage(QtCore.QObject):
         self.name = doc.short_description
 
         self.settings = []
-        arg_names = {p.arg_name: p.description for p in doc.params}
-        for i, (arg, arg_type) in enumerate(callback.__annotations__.items()):
-            if arg in arg_names:
-                s = SettingsItem(arg_names[arg], arg, arg_type, callback.__defaults__[i])
+        for p in doc.params:
+            if p.description != 'input_data':
+                try:
+                    _type = eval(p.type_name)
+                except SyntaxError:
+                    raise TypeError(f'invalid type name for {p.arg_name}: {p.type_name}')
+                try:
+                    default = eval(p.default)
+                except SyntaxError:
+                    raise TypeError(f'invalid default value for {p.arg_name}: {p.default}')
+                s = SettingsItem(p.description, p.arg_name, _type, default)
                 self.settings.append(s)
+
+    def __repr__(self):
+        return f'Stage <{self.number}: {self.name}>\n' \
+               f'Settings: {self.settings}'
 
     def proceed(self):
         kwargs = {s.arg_name: s.value for s in self.settings}
         self.result = self.callback(self.input_data, **kwargs)
-        self.ready_signal.emit()
+        print(f'{self.name} emitting signal')
+        self.ready_signal.emit(self.number)
+
+    def visualize_result(self, input_image):
+        self.image = self.visualizer(input_image, self.result)
 
     def copy(self):
         return self.__class__(self.number, self.callback, self.input_data)
 
 
+
 functions = [get_base_points, trace_interference_lines, calculate_phases]
 visualizers = [visualize_base_points, visualize_interference_lines, visualize_phases]
 
-stages = [Stage(i, f, v) for i, (f, v) in enumerate(zip(functions, visualizers))]
+stages = [Stage(i, f, v) for i, (f, v) in enumerate(zip(functions, visualizers), 0)]
+
+if __name__ == '__main__':
+    from _closed.functions import get_base_points
+    print(parse(get_base_points.__doc__))
+    print(Stage(1, get_base_points, print))
