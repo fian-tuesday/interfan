@@ -65,11 +65,26 @@ class Stage(QtCore.QObject):
         return self.__class__(self.number, self.callback, self.input_data)
 
 
+def load_image(input_image_filename):
+    """
+    Загрузка файла
+    """
+    input_image = Image.open(input_image_filename)
+    image_data = input_image.getdata()
+    # Зелёный в данной картинке всегда средний по яркости - берём именно его
+    return np.array(list(components[1] for components in image_data)).reshape(input_image.size[::-1])
+
+
+def visualize_image(input_image, brightness_array):
+    return Image.fromarray(brightness_array)
+
 
 functions = [get_base_points, trace_interference_lines, calculate_phases]
 visualizers = [visualize_base_points, visualize_interference_lines, visualize_phases]
 
-stages = [Stage(i, f, v) for i, (f, v) in enumerate(zip(functions, visualizers), 0)]
+first_stage = Stage(0, load_image, visualize_image)
+
+stages = [first_stage] + [Stage(i, f, v) for i, (f, v) in enumerate(zip(functions, visualizers), 1)]
 
 if __name__ == '__main__':
     from _closed.functions import get_base_points
