@@ -14,7 +14,7 @@ def monkey_decorator(func):
 # noinspection PyTypeHints, PyUnusedLocal
 @monkey_decorator
 def get_base_points(
-        data,
+        brightness_array,
         number_of_approximation_points: range(10, 100, 5) = 45,
         lower_threshold: range(256) = 100,
         upper_threshold: range(256) = 100
@@ -24,12 +24,12 @@ def get_base_points(
 
     Description
 
-    :param data: input_data
-    :param number_of_approximation_points: Количество точек аппроксимации
-    :param lower_threshold: Порог, ниже которого локальный минимум считаем черной полосой
-    :param upper_threshold: Порог, выше которого локальный максимум считаем белой полосой
+    :param brightness_array: input_data
+    :param range(10, 100, 5) number_of_approximation_points: Количество точек аппроксимации default 45
+    :param range(256) lower_threshold: Порог, ниже которого локальный минимум считаем черной полосой default 100
+    :param range(256) upper_threshold: Порог, выше которого локальный максимум считаем белой полосой default 100
     """
-    pass
+    return True
 
 
 # noinspection PyTypeHints, PyUnusedLocal
@@ -41,11 +41,11 @@ def trace_interference_lines(data, arg1: bool = True, arg2: bool = False, arg3: 
     Подробное описание
 
     :param data: input_data
-    :param arg1: Какой-то параметр
-    :param arg2: Еще какой-то параметр с очень очень длинным названием
-    :param arg3: Кокое-то произвольное число
+    :param bool arg1: Какой-то параметр default True
+    :param bool arg2: Еще какой-то параметр с очень очень длинным названием default False
+    :param int arg3: Кокое-то произвольное число default 10
     """
-    pass
+    return True
 
 
 # noinspection PyTypeHints, PyUnusedLocal
@@ -55,6 +55,6 @@ def calculate_phases(data, arg0='Hello world'):
     Определение фаз
 
     :param data: input_data
-    :param arg0: Текстовый параметр
+    :param str arg0: Текстовый параметр default 'Hello world'
     """
-    pass
+    return True
